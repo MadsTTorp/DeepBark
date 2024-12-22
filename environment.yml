@@ -1,0 +1,11 @@
+name: woofwisdom-gpt
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - setuptools
+  - python=3.11.9
+  - pip>=24
+  - ipython
+  - pip:
+    - -r requirements.txt
