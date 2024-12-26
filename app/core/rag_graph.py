@@ -1,12 +1,11 @@
-from typing import List, TypedDict
-from langchain_core.documents import Document
-from langgraph.graph import START, StateGraph
-# from app.core.vector_store import vector_store
-from app.core.config import custom_rag_prompt, llm
 import pickle 
 import faiss
 import numpy as np
+from typing import List, TypedDict
+from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
+from langgraph.graph import START, StateGraph
+from app.core.config import custom_rag_prompt, llm
 
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
@@ -35,22 +34,11 @@ def retrieve(state: State):
     print(f"Retrieved {len(retrieved_docs)} documents for the question: {state['question']}")
     return {"context": retrieved_docs}
 
-# def retrieve(state: State):
-#     retrieved_docs = vector_store.similarity_search(state["question"])
-#     print(f"Retrieved {len(retrieved_docs)} documents for the question: {state['question']}")
-#     return {"context": retrieved_docs}
-
 def generate(state: State):
     docs_content = "\n\n".join(doc.page_content for doc in state["context"])
     messages = custom_rag_prompt.invoke({"question": state["question"], "context": docs_content})
     response = llm.invoke(messages)
     return {"answer": response.content, "source": state["context"]}
-
-# def generate(state: State):
-#     docs_content = "\n\n".join(doc.page_content for doc in state["context"])
-#     messages = custom_rag_prompt.invoke({"question": state["question"], "context": docs_content})
-#     response = llm.invoke(messages)
-#     return {"answer": response.content}
 
 graph_builder = StateGraph(State).add_sequence([retrieve, generate])
 graph_builder.add_edge(START, "retrieve")
