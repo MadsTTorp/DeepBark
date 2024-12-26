@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Chat</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .chat-container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .chat-box { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+        .chat-input { width: calc(100% - 22px); padding: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h1>RAG Chat</h1>
+        <div id="chat-box" class="chat-box"></div>
+        <input type="text" id="chat-input" class="chat-input" placeholder="Type your question here...">
+    </div>
+
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const chatInput = document.getElementById('chat-input');
+
+        chatInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const question = chatInput.value;
+                chatInput.value = '';
+
+                // Display the user's question
+                const userMessage = document.createElement('div');
+                userMessage.textContent = `You: ${question}`;
+                chatBox.appendChild(userMessage);
+
+                // Send the question to the backend
+                const response = await fetch('/rag/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question })
+                });
+                const data = await response.json();
+
+                // Display the RAG model's response
+                const botMessage = document.createElement('div');
+                botMessage.textContent = `RAG: ${data.answer}`;
+                chatBox.appendChild(botMessage);
+
+                // Scroll to the bottom of the chat box
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
