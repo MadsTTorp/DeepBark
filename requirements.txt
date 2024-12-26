@@ -1,4 +1,5 @@
 ipykernel
+numpy
 bs4
 python-dotenv
 langchain 
@@ -8,3 +9,5 @@ langchain-community
 langgraph
 fastapi
 pydantic
+uvicorn
+faiss-cpu
