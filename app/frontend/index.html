@@ -3,19 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAG Chat</title>
+    <title>BarkBot</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        .chat-container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .chat-box { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
-        .chat-input { width: calc(100% - 22px); padding: 10px; margin-top: 10px; }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .chat-container {
+            width: 1000px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background-color: #2d8b30;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+        }
+        .chat-header h1 {
+            margin: 0;
+        }
+        .chat-header img {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .chat-header .left-paw {
+            left: 10px;
+            transform: translateY(-50%) rotate(-15deg);
+            width: 50px;
+            height: 50px;
+        }
+        .chat-header .right-paw {
+            right: 10px;
+            transform: translateY(-50%) rotate(15deg);
+            width: 50px;
+            height: 50px;
+        }
+        .chat-subtitle {
+            text-align: center;
+            padding: 10px;
+            color: #555;
+        }
+        .chat-box {
+            padding: 10px;
+            height: 500px;
+            overflow-y: auto;
+            border-top: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-input-container {
+            padding: 10px;
+        }
+        .chat-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #d4edda;
+            align-self: flex-end;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: #e2e3e5;
+            align-self: flex-start;
+            text-align: left;
+        }
+        .source-link {
+            display: block;
+            margin-top: 5px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .source-link:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
     <div class="chat-container">
-        <h1>RAG Chat</h1>
+        <div class="chat-header">
+            <img src="assets/paws.png" alt="Left Paw" class="left-paw">
+            <h1>BarkBot</h1>
+            <img src="assets/paws.png" alt="Right Paw" class="right-paw">
+        </div>
         <div id="chat-box" class="chat-box"></div>
-        <input type="text" id="chat-input" class="chat-input" placeholder="Type your question here...">
+        <div class="chat-input-container">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Hvordan kan jeg hjælpe dig og din hund i dag...?">
+        </div>
     </div>
 
     <script>
@@ -29,7 +124,8 @@
 
                 // Display the user's question
                 const userMessage = document.createElement('div');
-                userMessage.textContent = `You: ${question}`;
+                userMessage.className = 'message user-message';
+                userMessage.textContent = question;
                 chatBox.appendChild(userMessage);
 
                 // Send the question to the backend
@@ -40,10 +136,31 @@
                 });
                 const data = await response.json();
 
-                // Display the RAG model's response
+                // Display the RAG model's answer with typing effect
                 const botMessage = document.createElement('div');
-                botMessage.textContent = `RAG: ${data.answer}`;
+                botMessage.className = 'message bot-message';
                 chatBox.appendChild(botMessage);
+
+                const answerText = data.answer.answer;
+                let i = 0;
+                function typeWriter() {
+                    if (i < answerText.length) {
+                        botMessage.textContent += answerText.charAt(i);
+                        i++;
+                        setTimeout(typeWriter, 25); // Adjust typing speed here
+                    } else {
+                        // Display the sources as links within the bot message
+                        data.answer.sources.forEach(source => {
+                            const sourceLink = document.createElement('a');
+                            sourceLink.href = source;
+                            sourceLink.textContent = source;
+                            sourceLink.target = '_blank';
+                            sourceLink.className = 'source-link';
+                            botMessage.appendChild(sourceLink);
+                        });
+                    }
+                }
+                typeWriter();
 
                 // Scroll to the bottom of the chat box
                 chatBox.scrollTop = chatBox.scrollHeight;
