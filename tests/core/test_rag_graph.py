@@ -1,4 +1,3 @@
-import pytest
 from app.core.rag_graph import retrieve, State, AnswerWithSources
 from langchain_core.documents import Document
 
@@ -39,7 +38,8 @@ def test_retrieve_no_results():
     assert "context" in result
     assert len(result["context"]) == 0
     assert (
-        result["answer"]["answer"]
-        == "Jeg kender desværre ikke svaret på dit spørgsmål, \på baggrund af de artikler jeg har adgang til."
+        result["answer"]["answer"] ==
+        "Jeg kender desværre ikke svaret på dit spørgsmål, "
+        "på baggrund af de artikler jeg har adgang til."
     )
     assert len(result["answer"]["sources"]) == 0

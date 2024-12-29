@@ -1,7 +1,7 @@
 import pickle
 import faiss
 import numpy as np
-from typing import List, TypedDict
+from typing import List
 from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from langgraph.graph import START, StateGraph

@@ -96,9 +96,9 @@ def get_article_links(main_url: str) -> List[str]:
 
         article_links = set(
             [
-                a["href"]
-                for a in soup.find_all("a", class_="plain", href=True)
-                if "https://petguide.dk" in a["href"] and "kat" not in a["href"]
+             a["href"]
+             for a in soup.find_all("a", class_="plain", href=True)
+             if ("https://petguide.dk" in a["href"] and "kat" not in a["href"])
             ]
         )
 
@@ -140,7 +140,7 @@ def load_and_chunk_documents(
         )
         # Split the documents into chunks
         all_splits = text_splitter.split_documents(docs)
-        logging.info(f"Splitting documents into {len(all_splits)} sub-documents...")
+        logging.info(f"Splitting docs into {len(all_splits)} sub-documents...")
 
         if dry_run:
             logging.info("Dry run enabled. Exiting without saving.")
@@ -160,11 +160,13 @@ def load_and_chunk_documents(
         # Backup existing index and documents
         if os.path.exists(f"{storage_dir}/{index_name}"):
             shutil.copy(
-                f"{storage_dir}/{index_name}", f"{storage_dir}/{index_name}.bak"
+                f"{storage_dir}/{index_name}",
+                f"{storage_dir}/{index_name}.bak"
             )
         if os.path.exists(f"{storage_dir}/{document_name}"):
             shutil.copy(
-                f"{storage_dir}/{document_name}", f"{storage_dir}/{document_name}.bak"
+                f"{storage_dir}/{document_name}",
+                f"{storage_dir}/{document_name}.bak"
             )
 
         # Save the FAISS index and documents
@@ -172,7 +174,7 @@ def load_and_chunk_documents(
         with open(f"{storage_dir}/{document_name}", "wb") as f:
             pickle.dump(all_splits, f)
 
-        logging.info(f"Added {len(all_splits)} documents to the vector store...")
+        logging.info(f"Added {len(all_splits)} docs to the vector store...")
         return all_splits
     except Exception as e:
         logging.error(f"Error during document loading and chunking: {e}")

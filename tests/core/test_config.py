@@ -20,19 +20,20 @@ def test_llm_api_key():
         response = llm("Hello, how are you?")
         assert response is not None
     except Exception as e:
-        pytest.fail(f"Failed to initialize ChatOpenAI with the provided API key: {e}")
+        pytest.fail(f"Failed to init ChatOpenAI with the provided API key:{e}")
 
 
 def test_prompt_template_initialization():
     assert isinstance(custom_rag_prompt, PromptTemplate)
-    expected_template = """Brug følgende stykker kontekst til at besvare spørgsmålet i slutningen. 
-Hvis du ikke kender svaret, så sig bare, at du ikke ved det, og prøv ikke at opdigte et svar.
-Svar med maksimalt tre sætninger og hold svaret så kortfattet men præcist som muligt.
+    expected_template = """Brug følgende stykker kontekst til at besvare
+spørgsmålet i slutningen. Hvis du ikke kender svaret, så sig bare,
+at du ikke ved det, og prøv ikke at opdigte et svar. Svar med maksimalt tre
+sætninger og hold svaret så kortfattet men præcist som muligt.
 Vær høflig i dit svar.
 
-{context} 
+{context}
 
-Spørgsmål: {question} 
+Spørgsmål: {question}
 
 Hjælpsomt svar:"""
     assert custom_rag_prompt.template == expected_template

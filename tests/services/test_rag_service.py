@@ -1,4 +1,3 @@
-import pytest
 from unittest.mock import patch, MagicMock
 from app.services.rag_service import get_rag_answer
 
@@ -23,7 +22,7 @@ def test_get_rag_answer(mock_get_graph):
     question = "What is the best dog food?"
     result = get_rag_answer(question)
 
-    # Verify that the graph.invoke method was called with the correct parameters
+    # Verify that the graph.invoke method was called with the correct params
     mock_graph.invoke.assert_called_once_with({"question": question})
 
     # Verify the result
