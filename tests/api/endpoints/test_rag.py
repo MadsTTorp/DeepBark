@@ -4,6 +4,7 @@ from app.main import app
 
 client = TestClient(app)
 
+
 def test_ask_question():
     response = client.post("/rag/ask", json={"question": "Hvor mange ben har en hund?"})
     assert response.status_code == 200

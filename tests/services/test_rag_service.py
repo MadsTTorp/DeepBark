@@ -2,6 +2,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from app.services.rag_service import get_rag_answer
 
+
 @patch("app.services.rag_service.get_graph")
 def test_get_rag_answer(mock_get_graph):
     # Create a mock graph object
@@ -13,8 +14,8 @@ def test_get_rag_answer(mock_get_graph):
         "context": [{"page_content": "Sample content"}],
         "answer": {
             "answer": "This is a sample answer.",
-            "sources": ["http://example.com"]
-        }
+            "sources": ["http://example.com"],
+        },
     }
     mock_graph.invoke.return_value = mock_response
 
