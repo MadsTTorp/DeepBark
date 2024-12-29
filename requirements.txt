@@ -11,3 +11,4 @@ fastapi
 pydantic
 uvicorn
 faiss-cpu
+pytest
