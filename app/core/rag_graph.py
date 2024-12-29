@@ -35,29 +35,37 @@ class State(TypedDict):
     answer: AnswerWithSources
 
 def retrieve(state: State):
-    # Create embeddings for the query
+    # create embeddings for the query
     query_embedding = embeddings.embed_query(state["question"])
     query_embedding = np.array([query_embedding])
-    
-    # Perform similarity search
-    k = 5
-    similarity_threshold = 0.7  # Define a similarity threshold
+    # perform similarity search
+    k = 3
+    similarity_threshold = 0.5
     distances, indices = index.search(query_embedding, k=k)
-
-    # Filter documents based on the similarity threshold
+    # filter documents based on the similarity threshold
     retrieved_docs = []
     for distance, idx in zip(distances[0], indices[0]):
         if distance >= similarity_threshold:
             retrieved_docs.append(documents[idx])
 
     print(f"Retrieved {len(retrieved_docs)} documents for the question: {state['question']}")
+   
     return {"context": retrieved_docs}
 
 def generate(state: State):
+    # concatenate the content of the retrieved documents
     docs_content = "\n\n".join(doc.page_content for doc in state["context"])
+    # invoke the custom RAG prompt
     messages = custom_rag_prompt.invoke({"question": state["question"], "context": docs_content})
+    # invoke the LLM with structured output
     structured_llm = llm.with_structured_output(AnswerWithSources)
+    # invoke the LLM with the messages
     response = structured_llm.invoke(messages)
+    # Extract unique URLs from the context
+    unique_urls = list({doc.metadata['source'] for doc in state["context"]})
+    # Update the response with the unique URLs
+    response['sources'] = unique_urls
+
     return {"answer": response}
 
 graph_builder = StateGraph(State).add_sequence([retrieve, generate])
