@@ -40,17 +40,24 @@ def retrieve(state: State):
     query_embedding = np.array([query_embedding])
     # perform similarity search
     k = 3
-    similarity_threshold = 0.5
+    similarity_threshold = 0.3
     distances, indices = index.search(query_embedding, k=k)
     # filter documents based on the similarity threshold
     retrieved_docs = []
     for distance, idx in zip(distances[0], indices[0]):
-        if distance >= similarity_threshold:
+        if distance < similarity_threshold:
             retrieved_docs.append(documents[idx])
-
-    print(f"Retrieved {len(retrieved_docs)} documents for the question: {state['question']}")
    
-    return {"context": retrieved_docs}
+    state = {"context": retrieved_docs}
+
+    # If no relevant documents are found, set a default answer
+    if not retrieved_docs:
+        state["answer"] = AnswerWithSources(
+            answer="Jeg kender desværre ikke svaret på dit spørgsmål, \
+                på baggrund af de artikler jeg har adgang til.",
+            sources=[]
+        )
+    return state
 
 def generate(state: State):
     # concatenate the content of the retrieved documents
