@@ -6,22 +6,33 @@ from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
 from langgraph.graph import START, StateGraph
 from app.core.config import custom_rag_prompt, llm
+from typing_extensions import Annotated, TypedDict
 
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
-
-# Initialize embeddings
-embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
 # Load the FAISS index and documents
 index = faiss.read_index("app/vector_storage/vector_store.index")
 with open("app/vector_storage/documents.pkl", "rb") as f:
     documents = pickle.load(f)
 
+# Initialize embeddings
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+class AnswerWithSources(TypedDict):
+    """An answer to the question, with sources."""
+
+    answer: str
+    sources: Annotated[
+        List[str],
+        ...,
+        "List of sources (author + year) used to answer the question",
+    ]
+
 class State(TypedDict):
     question: str
     context: List[Document]
-    answer: str
+    answer: AnswerWithSources
 
 def retrieve(state: State):
     # Create embeddings for the query
@@ -29,16 +40,25 @@ def retrieve(state: State):
     query_embedding = np.array([query_embedding])
     
     # Perform similarity search
-    distances, indices = index.search(query_embedding, k=5)
-    retrieved_docs = [documents[i] for i in indices[0]]
+    k = 5
+    similarity_threshold = 0.7  # Define a similarity threshold
+    distances, indices = index.search(query_embedding, k=k)
+
+    # Filter documents based on the similarity threshold
+    retrieved_docs = []
+    for distance, idx in zip(distances[0], indices[0]):
+        if distance >= similarity_threshold:
+            retrieved_docs.append(documents[idx])
+
     print(f"Retrieved {len(retrieved_docs)} documents for the question: {state['question']}")
     return {"context": retrieved_docs}
 
 def generate(state: State):
     docs_content = "\n\n".join(doc.page_content for doc in state["context"])
     messages = custom_rag_prompt.invoke({"question": state["question"], "context": docs_content})
-    response = llm.invoke(messages)
-    return {"answer": response.content, "source": state["context"]}
+    structured_llm = llm.with_structured_output(AnswerWithSources)
+    response = structured_llm.invoke(messages)
+    return {"answer": response}
 
 graph_builder = StateGraph(State).add_sequence([retrieve, generate])
 graph_builder.add_edge(START, "retrieve")
