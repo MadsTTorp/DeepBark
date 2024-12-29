@@ -2,6 +2,8 @@ import faiss
 import bs4
 import pickle 
 import numpy as np
+import requests
+from typing import List
 
 from langchain.embeddings import OpenAIEmbeddings
 # from langchain_core.vectorstores import LangGraphVectorStore #InMemoryVectorStore
@@ -14,11 +16,22 @@ load_dotenv(find_dotenv())
 # Initialize embeddings
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
-# Create a vector store
-# vector_store = LangGraphVectorStore(embeddings)
+def get_article_links(main_url: str) -> List[str]:
+    response = requests.get(main_url)
+    soup = bs4.BeautifulSoup(response.content, 'html.parser')
+    
+    article_links = set(
+        [
+            a['href'] 
+            for a in soup.find_all('a', class_='plain', href=True) 
+            if 'https://petguide.dk' in a['href'] and 'kat' not in a['href']
+        ]
+    )
+    
+    return list(article_links)
 
 # Function to load and chunk documents
-def load_and_chunk_documents(web_paths: list):
+def load_and_chunk_documents(web_paths: List[str]):
     loader = WebBaseLoader(
         web_paths=web_paths,
         bs_kwargs=dict(
@@ -57,5 +70,10 @@ def load_and_chunk_documents(web_paths: list):
     return all_splits
 
 if __name__ == "__main__":
-    web_paths = ["https://petguide.dk/hundefoder-maerker/"]
-    load_and_chunk_documents(web_paths)
+    main_url = "https://petguide.dk/bloggen/"
+    print(f'Getting article links from {main_url}...')
+    article_links = get_article_links(main_url)
+    print(f'Found {len(article_links)} article links...')
+    load_and_chunk_documents(article_links)
+    print(f'Finished loading and chunking documents.\
+          \n Vector store is stored in app/vector_storage/')
