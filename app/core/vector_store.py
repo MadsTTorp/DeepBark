@@ -75,6 +75,7 @@ def _init_parser():
     parser.add_argument(
         '--dry_run',
         action='store_true',
+        default=False,
         help='Run the script without making any changes.',
     )
 
@@ -178,7 +179,8 @@ def main():
                                  args.chunk_overlap, 
                                  args.storage_dir, 
                                  args.index_name, 
-                                 args.document_name)
+                                 args.document_name,
+                                 args.dry_run)
         logging.info(f'Finished loading and chunking documents. \
               Vector store is stored in {args.storage_dir}/')
     else:
