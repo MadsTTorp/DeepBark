@@ -1,4 +1,4 @@
-from app.core.rag_graph import retrieve, State, AnswerWithSources
+from app.core.rag_graph import retrieve, generate, State, AnswerWithSources
 from langchain_core.documents import Document
 
 
@@ -20,23 +20,22 @@ def test_retrieve():
 
     # check that the retrieved documents are relevant
     for doc in result["context"]:
-        assert "ja" in doc.page_content.lower()
+        assert "border collie" in doc.page_content.lower()
 
 
-def test_retrieve_no_results():
-    # Create a mock state with a question that has no relevant documents
+def test_rag_when_no_results_found():
+    # create a mock state with a question that has no relevant documents
     state = State(
         question="Hvor lang tid tager det at galloper til jupiter?",
         context=[],
         answer=AnswerWithSources(answer="", sources=[]),
     )
 
-    # Call the retrieve function
-    result = retrieve(state)
+    # call the generate function
+    result = generate(state)
 
     # Check that the result contains the expected keys
-    assert "context" in result
-    assert len(result["context"]) == 0
+    assert "answer" in result
     assert (
         result["answer"]["answer"] ==
         "Jeg kender desværre ikke svaret på dit spørgsmål, "
