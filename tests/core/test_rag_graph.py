@@ -5,7 +5,7 @@ from langchain_core.documents import Document
 def test_retrieve():
     # create a mock state with a sample question
     state = State(
-        question="Hvilke farver har en Border Collie typisk?",
+        question="Er en border collie en god familie hund?",
         context=[],
         answer=AnswerWithSources(answer="", sources=[]),
     )
@@ -20,7 +20,7 @@ def test_retrieve():
 
     # check that the retrieved documents are relevant
     for doc in result["context"]:
-        assert "sort" in doc.page_content.lower()
+        assert "ja" in doc.page_content.lower()
 
 
 def test_retrieve_no_results():
