@@ -14,6 +14,6 @@ prompt_template = (
     "maksimalt tre sætninger og hold svaret så kortfattet men "
     "præcist som muligt. Vær høflig i dit svar.\n\n"
     "{context}\n\nSpørgsmål: {question}\n\nHjælpsomt svar:"
-)  
+)
 
 custom_rag_prompt = PromptTemplate.from_template(prompt_template)

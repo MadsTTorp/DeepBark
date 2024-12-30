@@ -32,7 +32,7 @@ def test_prompt_template_initialization():
         "maksimalt tre sætninger og hold svaret så kortfattet men "
         "præcist som muligt. Vær høflig i dit svar.\n\n"
         "{context}\n\nSpørgsmål: {question}\n\nHjælpsomt svar:"
-    ) 
+    )
 
     # Updated expected template string
     assert custom_rag_prompt.template == expected_template
