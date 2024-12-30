@@ -25,12 +25,21 @@ def test_llm_api_key():
 
 def test_prompt_template_initialization():
     assert isinstance(custom_rag_prompt, PromptTemplate)
-    expected_template = (
-        "Brug følgende stykker kontekst til at besvare spørgsmålet "
-        "i slutningen. Hvis du ikke kender svaret, så sig bare, "
-        "at du ikke ved det, og prøv ikke at opdigte et svar. "
-        "Svar med maksimalt tre sætninger og hold svaret "
-        "så kortfattet men præcist som muligt. Vær høflig i dit svar.\n\n"
-        "{context}\n\nSpørgsmål: {question}\n\nHjælpsomt svar:"
-    )  # Updated expected template string
+    expected_template = """Brug følgende stykker kontekst til at 
+besvare spørgsmålet i slutningen. Hvis du ikke kender svaret, 
+så sig bare, at du ikke ved det, og prøv ikke at opdigte et svar. 
+Svar med maksimalt tre sætninger og hold svaret så kortfattet men 
+præcist som muligt. Vær høflig i dit svar.
+
+{context}
+
+Spørgsmål: {question}
+
+Hjælpsomt svar:"""
+  
+    # Updated expected template string
     assert custom_rag_prompt.template == expected_template
+
+
+
+
