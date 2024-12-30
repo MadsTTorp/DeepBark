@@ -53,7 +53,7 @@ def retrieve(state: State):
             retrieved_docs.append(documents[idx])
     print(retrieved_docs)
     state = {"context": retrieved_docs}
-    
+
     return state
 
 
@@ -64,10 +64,10 @@ def generate(state: State):
                               'jeg har adgang til.',
                     'sources': []}
         return {"answer": response}
-        
+
     else:
         # concatenate the content of the retrieved documents
-        docs_content = "\n\n".join(doc.page_content for doc in state["context"])
+        docs_content = "\n\n".join(dc.page_content for dc in state["context"])
         # invoke the custom RAG prompt
         messages = custom_rag_prompt.invoke(
             {"question": state["question"], "context": docs_content}
@@ -77,7 +77,7 @@ def generate(state: State):
         # invoke the LLM with the messages
         response = structured_llm.invoke(messages)
         # Extract unique URLs from the context
-        unique_urls = list({doc.metadata["source"] for doc in state["context"]})
+        unique_urls = list({dc.metadata["source"] for dc in state["context"]})
         # Update the response with the unique URLs
         response["sources"] = unique_urls
 
