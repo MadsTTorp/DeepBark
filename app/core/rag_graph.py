@@ -57,8 +57,8 @@ def retrieve(state: State):
     # If no relevant documents are found, set a default answer
     if not retrieved_docs:
         state["answer"] = AnswerWithSources(
-            answer="Jeg kender desværre ikke svaret på dit spørgsmål, \
-                på baggrund af de artikler jeg har adgang til.",
+            answer="Jeg kender desværre ikke svaret på dit spørgsmål, "
+                   "på baggrund af de artikler jeg har adgang til.",
             sources=[],
         )
     return state
