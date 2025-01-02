@@ -1,15 +1,18 @@
-from app.core.rag_graph import retrieve, generate, query_or_respond, MessagesState
+from app.core.rag_graph import retrieve, query_or_respond, MessagesState
 from langchain_core.documents import Document
-from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage, AIMessage
+from langchain_core.messages import HumanMessage
 
 
 def test_retrieve():
     # Create a mock state with a sample question
     state = MessagesState(
-        messages=[
-            HumanMessage(content="Er en border collie en god familie hund?")
-        ]
+        messages=[HumanMessage(
+            content="Er en border collie en god familie hund?"
+            )]
     )
+
+    # call the query_or_respond function
+    query_or_respond(state)
 
     # Call the retrieve function
     result = retrieve("Er en border collie en god familie hund?")

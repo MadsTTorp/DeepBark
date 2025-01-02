@@ -1,11 +1,12 @@
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import PromptTemplate
 import uuid
 from dotenv import load_dotenv, find_dotenv
+
 load_dotenv(find_dotenv())
 
 # Initialize the language model
 llm = ChatOpenAI(model="gpt-4o-mini")
+
 
 # Define the prompt template
 def get_prompt(docs_context):
@@ -19,9 +20,11 @@ def get_prompt(docs_context):
     )
     return prompt_template
 
+
 # Generate a unique thread ID for each session
 def generate_thread_id():
     return str(uuid.uuid4())
+
 
 memory_config = {"configurable": {"thread_id": generate_thread_id()}}
 

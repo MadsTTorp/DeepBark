@@ -1,19 +1,16 @@
 import pickle
 import faiss
 import numpy as np
-from typing import List
-from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
-from langgraph.graph import START, StateGraph
-from app.core.config import *
-from typing_extensions import Annotated, TypedDict
-from langgraph.graph import MessagesState, StateGraph, END
 from langgraph.prebuilt import ToolNode, tools_condition
+from app.core.config import llm, get_prompt, similarity_threshold
+from langgraph.graph import MessagesState, StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
-from langchain_core.messages import SystemMessage, ToolMessage
+from langchain_core.messages import SystemMessage
 from langchain_core.tools import tool
 
 from dotenv import load_dotenv, find_dotenv
+
 load_dotenv(find_dotenv())
 
 # Load the FAISS index and documents
@@ -50,8 +47,10 @@ def retrieve(query: str):
     )
     return serialized, retrieved_docs
 
+
 # Executre the retrieval tool
 tools = ToolNode([retrieve])
+
 
 # Generate an AIMessage that may include a tool-call to be sent.
 def query_or_respond(state: MessagesState):
@@ -62,7 +61,7 @@ def query_or_respond(state: MessagesState):
     return {"messages": [response]}
 
 
-#Generate a response using the retrieved content.
+# Generate a response using the retrieved content.
 def generate(state: MessagesState):
     """Generate answer."""
 
@@ -90,6 +89,7 @@ def generate(state: MessagesState):
     response = llm.invoke(prompt)
     return {"messages": [response]}
 
+
 # build the graph
 graph_builder.add_node(query_or_respond)
 graph_builder.add_node(tools)
@@ -101,10 +101,7 @@ graph_builder.set_entry_point("query_or_respond")
 graph_builder.add_conditional_edges(
     "query_or_respond",
     tools_condition,
-    {
-     END: END, 
-     "tools": "tools"
-     },
+    {END: END, "tools": "tools"},
 )
 # add edges to the graph that connect the nodes
 graph_builder.add_edge("tools", "generate")

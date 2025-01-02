@@ -1,8 +1,7 @@
 import os
 import pytest
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import PromptTemplate
-from app.core.config import llm, custom_rag_prompt
+from app.core.config import llm
 
 
 def test_environment_variables_loaded():
