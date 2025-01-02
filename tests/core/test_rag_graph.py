@@ -1,7 +1,8 @@
 import numpy as np
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from app.core.rag_graph import retrieve
 from langchain_core.documents import Document
+
 
 @patch("app.core.rag_graph.embeddings.embed_query")
 @patch("app.core.rag_graph.index.search")
@@ -28,7 +29,7 @@ def test_retrieve(mock_search, mock_embed_query):
     # Patch the documents and similarity threshold
     with patch("app.core.rag_graph.documents", mock_documents), \
          patch("app.core.rag_graph.similarity_threshold", 0.15):
-        
+
         # Call the retrieve function
         query = "Sample query"
         serialized, retrieved_docs = retrieve(query)
@@ -53,6 +54,7 @@ def test_retrieve(mock_search, mock_embed_query):
         # Check the content of the retrieved documents
         for doc in retrieved_docs:
             assert "Content of document" in doc.page_content
+
 
 # Run the test
 test_retrieve()
