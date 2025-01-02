@@ -4,11 +4,11 @@ from app.core.rag_graph import retrieve
 from langchain_core.documents import Document
 
 
-@patch("app.core.rag_graph.embeddings.embed_query")
+@patch("app.core.rag_graph.OpenAIEmbeddings.embed_text")
 @patch("app.core.rag_graph.index.search")
-def test_retrieve(mock_search, mock_embed_query):
+def test_retrieve(mock_search, mock_embed_text):
     # Mock the embedding function
-    mock_embed_query.return_value = np.array([0.1, 0.2, 0.3])
+    mock_embed_text.return_value = np.array([0.1, 0.2, 0.3])
 
     # Mock the search function
     mock_search.return_value = (
