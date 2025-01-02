@@ -1,13 +1,57 @@
-from app.core.init_rag import get_graph
+from app.core.rag_graph import graph
+from app.core.config import memory_config
+from langchain_core.messages import ToolMessage
+from langchain_core.messages import AIMessage
+import logging 
 
+logger = logging.getLogger(__name__)
 
 def get_rag_answer(question: str) -> dict:
-    graph = get_graph()
-    print(f"Received question: {question}")
-    result = graph.invoke({"question": question})
-    print(
-        f"Answer: {result['answer']['answer']},\
-        Sources: {result['answer']['sources']}"
-    )
+    logger.info(f"Received question: {question}")
+    
+    # define query
+    query = {"messages": [{"role": "user", "content": question}]}
+    # send query to graph
+    output = graph.stream(query, stream_mode="values", config=memory_config)
 
-    return {"context": result["context"], "answer": result["answer"]}
+    # Collect the response stream from the graph
+    result = [step["messages"] for step in output][-1]
+
+    # logging.info(f"Response stream: {result}")
+    logging.info(f"Config: {memory_config}")
+    # Extract the final response
+    final_response = next(
+        (
+            res for res in reversed(result)
+            if isinstance(res, AIMessage)
+        ),
+        None
+    )
+    answer = final_response.content
+    
+    # Extract sources from ToolMessages
+    tool_message = next(
+        (
+            tool_msg for tool_msg in reversed(result)
+            if isinstance(tool_msg, ToolMessage)
+        ),
+        None
+    )
+    if tool_message:
+        print(tool_message.artifact)
+        source_list = [doc.metadata['source'] for doc in tool_message.artifact]
+    else:
+        source_list = []
+
+    # Remove duplicates
+    source_list = list(set(source_list))
+
+    # default response in case of no sources
+    if not source_list:
+        answer =  ('Jeg kender desværre ikke svaret på dit '
+                  'spørgsmål, på baggrund af de artikler '
+                  'jeg har adgang til.')
+
+    logger.info(f"Answer: {answer}, Sources: {source_list}")
+    
+    return {"answer": answer, "sources": source_list}
