@@ -17,9 +17,12 @@ def test_retrieve(mock_search, mock_embed_query):
 
     # Mock documents
     mock_documents = [
-        Document(metadata={"source": "http://example.com/doc1"}, page_content="Content of document 1"),
-        Document(metadata={"source": "http://example.com/doc2"}, page_content="Content of document 2"),
-        Document(metadata={"source": "http://example.com/doc3"}, page_content="Content of document 3")
+        Document(metadata={"source": "http://example.com/doc1"},
+                 page_content="Content of document 1"),
+        Document(metadata={"source": "http://example.com/doc2"},
+                 page_content="Content of document 2"),
+        Document(metadata={"source": "http://example.com/doc3"},
+                 page_content="Content of document 3")
     ]
 
     # Patch the documents and similarity threshold
@@ -38,9 +41,12 @@ def test_retrieve(mock_search, mock_embed_query):
 
         # Check the content of the serialized string
         expected_serialized = (
-            "Source: {'source': 'http://example.com/doc1'}\nContent: Content of document 1\n\n"
-            "Source: {'source': 'http://example.com/doc2'}\nContent: Content of document 2\n\n"
-            "Source: {'source': 'http://example.com/doc3'}\nContent: Content of document 3"
+            "Source: {'source': 'http://example.com/doc1'}\n"
+            "Content: Content of document 1\n\n"
+            "Source: {'source': 'http://example.com/doc2'}\n"
+            "Content: Content of document 2\n\n"
+            "Source: {'source': 'http://example.com/doc3'}\n"
+            "Content: Content of document 3"
         )
         assert serialized == expected_serialized
 
