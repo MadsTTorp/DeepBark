@@ -67,15 +67,16 @@ def generate(state: MessagesState):
     """Generate answer."""
 
     # collect the last tool message (contains sources)
-    last_tool_message = next(
-        (
-            tool_msg for tool_msg in reversed(state["messages"])
-            if isinstance(tool_msg, ToolMessage)
-        )
-    )
+    recent_tool_messages = []
+    for message in reversed(state["messages"]):
+        if message.type == "tool":
+            recent_tool_messages.append(message)
+        else:
+            break
+    tool_messages = recent_tool_messages[::-1]
 
     # Format into prompt
-    docs_content = "\n\n".join(doc.content for doc in [last_tool_message])
+    docs_content = "\n\n".join(doc.content for doc in tool_messages)
     system_message_cont = get_prompt(docs_content)
     conversation_messages = [
         message
@@ -96,11 +97,14 @@ graph_builder.add_node(generate)
 
 # set the entry point
 graph_builder.set_entry_point("query_or_respond")
-# add edges to the graph that connect the nodes
+# add conditions for passing from one node to another
 graph_builder.add_conditional_edges(
     "query_or_respond",
     tools_condition,
-    {END: END, "tools": "tools"},
+    {
+     END: END, 
+     "tools": "tools"
+     },
 )
 # add edges to the graph that connect the nodes
 graph_builder.add_edge("tools", "generate")
