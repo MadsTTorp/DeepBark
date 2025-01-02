@@ -13,5 +13,4 @@ class Question(BaseModel):
 @router.post("/ask")
 def ask_question(question: Question):
     result = get_rag_answer(question.question)
-    print(result)
     return {"answer": result["answer"], "sources": result["sources"]}
