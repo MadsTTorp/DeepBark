@@ -11,10 +11,10 @@ llm = ChatOpenAI(model="gpt-4o-mini")
 def get_prompt(docs_context):
     prompt_template = (
         "Du er en ekspert i alt omkring hunde."
-        "Brug udelukkende følgende stykker kontekst til at besvare spørgsmålet. "
-        "Svar med maksimalt tre sætninger og hold svaret så kortfattet men "
-        "præcist som muligt og velformuleret. Vær høflig i dit svar."
-        "\n\n"
+        "Brug udelukkende følgende stykker kontekst til at besvare "
+        "spørgsmålet. Svar med maksimalt tre sætninger og hold svaret så "
+        "kortfattet men præcist som muligt og velformuleret. Vær høflig "
+        "i dit svar.\n\n"
         f"{docs_context}"
     )
     return prompt_template

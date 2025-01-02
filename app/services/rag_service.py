@@ -45,7 +45,10 @@ def get_rag_answer(question: str) -> dict:
             for doc in tool_message.artifact:
                 if hasattr(doc, 'metadata') and 'source' in doc.metadata:
                     source_list.append(doc.metadata['source'])
-                elif isinstance(doc, dict) and 'metadata' in doc and 'source' in doc['metadata']:
+                elif (
+                    isinstance(doc, dict) and 
+                    'metadata' in doc and 
+                    'source' in doc['metadata']):
                     source_list.append(doc['metadata']['source'])
     
         else:
