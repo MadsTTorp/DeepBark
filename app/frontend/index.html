@@ -114,58 +114,69 @@
     </div>
 
     <script>
-        const chatBox = document.getElementById('chat-box');
-        const chatInput = document.getElementById('chat-input');
-
-        chatInput.addEventListener('keypress', async (e) => {
-            if (e.key === 'Enter') {
-                const question = chatInput.value;
-                chatInput.value = '';
-
-                // Display the user's question
-                const userMessage = document.createElement('div');
-                userMessage.className = 'message user-message';
-                userMessage.textContent = question;
-                chatBox.appendChild(userMessage);
-
-                // Send the question to the backend
-                const response = await fetch('/rag/ask', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question })
-                });
-                const data = await response.json();
-
-                // Display the RAG model's answer with typing effect
-                const botMessage = document.createElement('div');
-                botMessage.className = 'message bot-message';
-                chatBox.appendChild(botMessage);
-
-                const answerText = data.answer.answer;
-                let i = 0;
-                function typeWriter() {
-                    if (i < answerText.length) {
-                        botMessage.textContent += answerText.charAt(i);
-                        i++;
-                        setTimeout(typeWriter, 25); // Adjust typing speed here
-                    } else {
-                        // Display the sources as links within the bot message
-                        data.answer.sources.forEach(source => {
-                            const sourceLink = document.createElement('a');
-                            sourceLink.href = source;
-                            sourceLink.textContent = source;
-                            sourceLink.target = '_blank';
-                            sourceLink.className = 'source-link';
-                            botMessage.appendChild(sourceLink);
-                        });
-                    }
-                }
-                typeWriter();
-
-                // Scroll to the bottom of the chat box
-                chatBox.scrollTop = chatBox.scrollHeight;
+        document.getElementById('chat-input').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
             }
         });
+
+        async function sendMessage() {
+            const inputMessage = document.getElementById('chat-input');
+            const chatBox = document.getElementById('chat-box');
+            const message = inputMessage.value;
+
+            if (message.trim() === '') return;
+
+            // Display user message
+            const userMessage = document.createElement('div');
+            userMessage.className = 'message user-message';
+            userMessage.textContent = message;
+            chatBox.appendChild(userMessage);
+
+            // Clear input
+            inputMessage.value = '';
+
+            // Send message to the server
+            const response = await fetch('/rag/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ question: message })
+            });
+
+            const data = await response.json();
+
+            // Display bot response word by word
+            const botMessage = document.createElement('div');
+            botMessage.className = 'message bot-message';
+            chatBox.appendChild(botMessage);
+
+            const words = data.answer.split(' ');
+            let index = 0;
+
+            function displayNextWord() {
+                if (index < words.length) {
+                    botMessage.textContent += (index > 0 ? ' ' : '') + words[index];
+                    index++;
+                    setTimeout(displayNextWord, 100); // Adjust the delay as needed
+                } else {
+                    // Display sources as links
+                    data.sources.forEach(source => {
+                        const sourceLink = document.createElement('a');
+                        sourceLink.href = source;
+                        sourceLink.textContent = source;
+                        sourceLink.className = 'source-link';
+                        botMessage.appendChild(sourceLink);
+                    });
+
+                    // Scroll to the bottom
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }
+
+            displayNextWord();
+        }
     </script>
 </body>
 </html>

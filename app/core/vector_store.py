@@ -96,9 +96,12 @@ def get_article_links(main_url: str) -> List[str]:
 
         article_links = set(
             [
-             a["href"]
-             for a in soup.find_all("a", class_="plain", href=True)
-             if ("https://petguide.dk" in a["href"] and "kat" not in a["href"])
+                a["href"]
+                for a in soup.find_all("a", class_="plain", href=True)
+                if (
+                    "https://petguide.dk" in a["href"]
+                    and "kat" not in a["href"]
+                    )
             ]
         )
 

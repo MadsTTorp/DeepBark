@@ -1,12 +1,13 @@
 import pickle
 import faiss
 import numpy as np
-from typing import List
-from langchain_core.documents import Document
 from langchain_openai import OpenAIEmbeddings
-from langgraph.graph import START, StateGraph
-from app.core.config import custom_rag_prompt, llm
-from typing_extensions import Annotated, TypedDict
+from langgraph.prebuilt import ToolNode, tools_condition
+from app.core.config import llm, get_prompt, similarity_threshold
+from langgraph.graph import MessagesState, StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
+from langchain_core.messages import SystemMessage
+from langchain_core.tools import tool
 
 from dotenv import load_dotenv, find_dotenv
 
@@ -20,70 +21,92 @@ with open("app/vector_storage/documents.pkl", "rb") as f:
 # Initialize embeddings
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
+# Initialize the graph builder
+graph_builder = StateGraph(MessagesState)
 
-class AnswerWithSources(TypedDict):
-    """An answer to the question, with sources."""
-
-    answer: str
-    sources: Annotated[
-        List[str],
-        ...,
-        "List of sources (author + year) used to answer the question",
-    ]
+# Initialize the memory saver
+memory = MemorySaver()
 
 
-class State(TypedDict):
-    question: str
-    context: List[Document]
-    answer: AnswerWithSources
-
-
-def retrieve(state: State):
-    # create embeddings for the query
-    query_embedding = embeddings.embed_query(state["question"])
+@tool(response_format="content_and_artifact")
+def retrieve(query: str):
+    """Retrieve information related to a query."""
+    # Create embeddings for the query
+    query_embedding = embeddings.embed_query(query)
     query_embedding = np.array([query_embedding])
-    # perform similarity search
-    k = 3
-    similarity_threshold = 0.7
-    distances, indices = index.search(query_embedding, k=k)
-    # filter documents based on the similarity threshold
+
+    distances, indices = index.search(query_embedding, k=3)
     retrieved_docs = []
     for distance, idx in zip(distances[0], indices[0]):
         if distance < similarity_threshold:
             retrieved_docs.append(documents[idx])
-    print(retrieved_docs)
-    state = {"context": retrieved_docs}
 
-    return state
-
-
-def generate(state: State):
-    if not state["context"]:
-        response = {'answer': 'Jeg kender desværre ikke svaret på dit '
-                              'spørgsmål, på baggrund af de artikler '
-                              'jeg har adgang til.',
-                    'sources': []}
-        return {"answer": response}
-
-    else:
-        # concatenate the content of the retrieved documents
-        docs_content = "\n\n".join(dc.page_content for dc in state["context"])
-        # invoke the custom RAG prompt
-        messages = custom_rag_prompt.invoke(
-            {"question": state["question"], "context": docs_content}
-        )
-        # invoke the LLM with structured output
-        structured_llm = llm.with_structured_output(AnswerWithSources)
-        # invoke the LLM with the messages
-        response = structured_llm.invoke(messages)
-        # Extract unique URLs from the context
-        unique_urls = list({dc.metadata["source"] for dc in state["context"]})
-        # Update the response with the unique URLs
-        response["sources"] = unique_urls
-
-        return {"answer": response}
+    serialized = "\n\n".join(
+        (f"Source: {doc.metadata}\n" f"Content: {doc.page_content}")
+        for doc in retrieved_docs
+    )
+    return serialized, retrieved_docs
 
 
-graph_builder = StateGraph(State).add_sequence([retrieve, generate])
-graph_builder.add_edge(START, "retrieve")
+# Executre the retrieval tool
+tools = ToolNode([retrieve])
+
+
+# Generate an AIMessage that may include a tool-call to be sent.
+def query_or_respond(state: MessagesState):
+    """Generate tool call for retrieval or respond."""
+    llm_with_tools = llm.bind_tools([retrieve])
+    response = llm_with_tools.invoke(state["messages"])
+    # MessagesState appends messages to state instead of overwriting
+    return {"messages": [response]}
+
+
+# Generate a response using the retrieved content.
+def generate(state: MessagesState):
+    """Generate answer."""
+
+    # collect the last tool message (contains sources)
+    recent_tool_messages = []
+    for message in reversed(state["messages"]):
+        if message.type == "tool":
+            recent_tool_messages.append(message)
+        else:
+            break
+    tool_messages = recent_tool_messages[::-1]
+
+    # Format into prompt
+    docs_content = "\n\n".join(doc.content for doc in tool_messages)
+    system_message_cont = get_prompt(docs_content)
+    conversation_messages = [
+        message
+        for message in state["messages"]
+        if message.type in ("human", "system")
+        or (message.type == "ai" and not message.tool_calls)
+    ]
+    prompt = [SystemMessage(system_message_cont)] + conversation_messages
+
+    # Run
+    response = llm.invoke(prompt)
+    return {"messages": [response]}
+
+
+# build the graph
+graph_builder.add_node(query_or_respond)
+graph_builder.add_node(tools)
+graph_builder.add_node(generate)
+
+# set the entry point
+graph_builder.set_entry_point("query_or_respond")
+# add conditions for passing from one node to another
+graph_builder.add_conditional_edges(
+    "query_or_respond",
+    tools_condition,
+    {END: END, "tools": "tools"},
+)
+# add edges to the graph that connect the nodes
+graph_builder.add_edge("tools", "generate")
+graph_builder.add_edge("generate", END)
+# compile the graph
 graph = graph_builder.compile()
+# initiate the memory saver to save the state of the graph
+graph = graph_builder.compile(checkpointer=memory)
