@@ -64,7 +64,7 @@ def test_get_rag_answer_no_sources():
 
 @patch("app.services.rag_service.graph")
 def test_get_rag_answer_error_handling(mock_graph):
-    
+
     # Create a mock AIMessage and an invalid ToolMessage to force an error
     mock_ai_message = AIMessage(content="This is a sample answer.")
     mock_tool_message = ToolMessage(
