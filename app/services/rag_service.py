@@ -67,9 +67,6 @@ def get_rag_answer(question: str) -> dict:
         logger.info(f"Answer: {answer}, Sources: {source_list}")
 
     except Exception as e:
-        print(tool_message.artifact)
-        print("\n")
-        print(tool_message.artifact[0])
         logger.error(f"Error: {e}")
         answer = "Noget gik galt, prøv venligst igen."
         source_list = []
