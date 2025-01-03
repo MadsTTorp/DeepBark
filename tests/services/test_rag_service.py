@@ -9,8 +9,10 @@ def test_get_rag_answer(mock_graph):
     # Create a mock AIMessage and ToolMessage
     mock_ai_message = AIMessage(content="This is a sample answer.")
     mock_tool_message = ToolMessage(
-        content=("Source: {'source': 'http://example.com', 'start_index': 0, " 
-                "'section': None}\nContent: Sample content"),
+        content=(
+            "Source: {'source': 'http://example.com', 'start_index': 0, "
+            "'section': None}\nContent: Sample content"
+        ),
         artifact=[
             {
                 "metadata": {"source": "http://example.com"},
