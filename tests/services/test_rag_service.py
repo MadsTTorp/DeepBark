@@ -62,30 +62,28 @@ def test_get_rag_answer_no_sources():
         assert result["sources"] == []
 
 
-def test_get_rag_answer_error_handling():
-
-    # Create a mock ToolMessage
+@patch("app.services.rag_service.graph")
+def test_get_rag_answer_error_handling(mock_graph):
+    
+    # Create a mock AIMessage and an invalid ToolMessage to force an error
+    mock_ai_message = AIMessage(content="This is a sample answer.")
     mock_tool_message = ToolMessage(
-        content="",
-        name="retrieve",
-        artifact=[],
+        content=(
+            "Source: {'source': 'http://example.com', 'start_index': 0, "
+            "'section': None}\nContent: Sample content"
+        ),
+        artifact=None,  # Invalid artifact to force an error
         tool_call_id="sample_tool_call_id"
-        )
-    # Create a mock AIMessage
-    mock_ai_message = AIMessage(
-        content="This is a sample answer.",
-        additional_kwargs={'refusal': None},
-        )
+    )
 
     # Define the mock response from the graph
     mock_response = [{"messages": [mock_tool_message, mock_ai_message]}]
+    mock_graph.stream.return_value = mock_response
 
-    with patch("app.services.rag_service.graph.stream",
-               return_value=mock_response):
-        # Call the get_rag_answer function
-        question = int(123)
-        result = get_rag_answer(question)
+    # Call the get_rag_answer function
+    question = "What is the best dog food?"
+    result = get_rag_answer(question)
 
-        # Verify the result
-        assert result["answer"] == "Noget gik galt, prøv venligst igen."
-        assert result["sources"] == []
+    # Verify the result
+    assert result["answer"] == "Noget gik galt, prøv venligst igen."
+    assert result["sources"] == []
