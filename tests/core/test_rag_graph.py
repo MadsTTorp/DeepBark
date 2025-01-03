@@ -3,7 +3,7 @@ import faiss
 from unittest.mock import patch
 from app.core.rag_graph import retrieve
 from langchain_core.documents import Document
-from langchain_core.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 
 
