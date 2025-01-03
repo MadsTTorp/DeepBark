@@ -2,12 +2,13 @@ import numpy as np
 import faiss
 from unittest.mock import patch
 from app.core.rag_graph import retrieve
-from typing import TypedDict
 from langchain_core.documents import Document
 from langchain_core.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 
+
 def build_mock_vector_store():
+
     # Create mock documents
     mock_documents = [
         Document(metadata={"source": "http://example.com/doc1"},
@@ -44,6 +45,7 @@ def build_mock_vector_store():
 
     return index, mock_documents
 
+
 @patch(
         "app.core.rag_graph.index",
         new_callable=lambda: build_mock_vector_store()[0]
@@ -62,7 +64,7 @@ def test_retrieve(mock_documents, mock_index):
 
     # Check that the result contains two "Source: {'source': ...}" objects
     sources = result.split("Source: ")
-    assert len(sources) == 3  
+    assert len(sources) == 3
 
     # Check the content of the serialized string
     expected_serialized_part1 = (
@@ -75,6 +77,7 @@ def test_retrieve(mock_documents, mock_index):
     )
     assert expected_serialized_part1 in result
     assert expected_serialized_part2 in result
+
 
 # Run the test
 test_retrieve()
