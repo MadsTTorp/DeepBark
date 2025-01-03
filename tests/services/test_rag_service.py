@@ -18,7 +18,8 @@ def test_get_rag_answer(mock_graph):
                 "metadata": {"source": "http://example.com"},
                 "page_content": "Sample content",
             }
-        ]
+        ],
+        tool_call_id="sample_tool_call_id"
     )
 
     # Define the mock response from the graph
@@ -67,7 +68,8 @@ def test_get_rag_answer_error_handling():
     mock_tool_message = ToolMessage(
         content="",
         name="retrieve",
-        artifact=[]
+        artifact=[],
+        tool_call_id="sample_tool_call_id"
         )
     # Create a mock AIMessage
     mock_ai_message = AIMessage(
