@@ -83,8 +83,8 @@ def test_get_rag_answer_error_handling():
     with patch("app.services.rag_service.graph.stream",
                return_value=mock_response):
         # Call the get_rag_answer function
-        question = "What is the best dog food?"
-        result = get_rag_answer(question, memory_config)
+        question = int(123)
+        result = get_rag_answer(question)
 
         # Verify the result
         assert result["answer"] == "Noget gik galt, prøv venligst igen."
