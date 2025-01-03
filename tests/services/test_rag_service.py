@@ -9,6 +9,8 @@ def test_get_rag_answer(mock_graph):
     # Create a mock AIMessage and ToolMessage
     mock_ai_message = AIMessage(content="This is a sample answer.")
     mock_tool_message = ToolMessage(
+        content=("Source: {'source': 'http://example.com', 'start_index': 0, " 
+                "'section': None}\nContent: Sample content"),
         artifact=[
             {
                 "metadata": {"source": "http://example.com"},
@@ -51,17 +53,24 @@ def test_get_rag_answer_no_sources():
         result = get_rag_answer(question)
 
         # Verify the result
-        assert result["answer"] == "This is a sample answer."
+        assert result["answer"] == ("Jeg kender desværre ikke svaret "
+                                    "på dit spørgsmål, på baggrund af "
+                                    "de artikler jeg har adgang til.")
         assert result["sources"] == []
 
 
 def test_get_rag_answer_error_handling():
-    # Create a mock ToolMessage with incorrect format
+
+    # Create a mock ToolMessage
     mock_tool_message = ToolMessage(
-        artifact=[{"incorrect_format": "no metadata"}]
+        content="",
+        name="retrieve",
+        artifact=[]
         )
+    # Create a mock AIMessage
     mock_ai_message = AIMessage(
-        content="This is a sample answer."
+        content="This is a sample answer.",
+        additional_kwargs={'refusal': None},
         )
 
     # Define the mock response from the graph
