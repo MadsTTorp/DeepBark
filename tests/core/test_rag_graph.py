@@ -1,60 +1,80 @@
 import numpy as np
+import faiss
 from unittest.mock import patch
 from app.core.rag_graph import retrieve
+from typing import TypedDict
 from langchain_core.documents import Document
+from langchain_core.text_splitter import RecursiveCharacterTextSplitter
+from langchain_openai import OpenAIEmbeddings
 
-
-@patch("app.core.rag_graph.OpenAIEmbeddings.embed_text")
-@patch("app.core.rag_graph.index.search")
-def test_retrieve(mock_search, mock_embed_text):
-    # Mock the embedding function
-    mock_embed_text.return_value = np.array([0.1, 0.2, 0.3])
-
-    # Mock the search function
-    mock_search.return_value = (
-        np.array([[0.1, 0.2, 0.3]]),  # distances
-        np.array([[0, 1, 2]])         # indices
-    )
-
-    # Mock documents
+def build_mock_vector_store():
+    # Create mock documents
     mock_documents = [
         Document(metadata={"source": "http://example.com/doc1"},
                  page_content="Content of document 1"),
         Document(metadata={"source": "http://example.com/doc2"},
-                 page_content="Content of document 2"),
-        Document(metadata={"source": "http://example.com/doc3"},
-                 page_content="Content of document 3")
+                 page_content="Content of document 2")
     ]
 
-    # Patch the documents and similarity threshold
-    with patch("app.core.rag_graph.documents", mock_documents), \
-         patch("app.core.rag_graph.similarity_threshold", 0.15):
+    # Initiate the text splitter
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,  # chunk size (characters)
+        chunk_overlap=200,  # chunk overlap (characters)
+        add_start_index=True,  # track index in original document
+    )
 
-        # Call the retrieve function
-        query = "Sample query"
-        serialized, retrieved_docs = retrieve(query)
+    # Split the documents into chunks
+    all_splits = []
+    for doc in mock_documents:
+        splits = text_splitter.split_documents([doc])
+        all_splits.extend(splits)  # Add the splits to the all_splits list
 
-        # Check that the result contains the expected keys
-        assert isinstance(serialized, str)
-        assert isinstance(retrieved_docs, list)
-        assert len(retrieved_docs) == 3
-        assert isinstance(retrieved_docs[0], Document)
+    # Initialize embeddings
+    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
-        # Check the content of the serialized string
-        expected_serialized = (
-            "Source: {'source': 'http://example.com/doc1'}\n"
-            "Content: Content of document 1\n\n"
-            "Source: {'source': 'http://example.com/doc2'}\n"
-            "Content: Content of document 2\n\n"
-            "Source: {'source': 'http://example.com/doc3'}\n"
-            "Content: Content of document 3"
+    # Create embeddings for each chunk
+    embeddings_list = [embeddings.embed_query(doc.page_content)
+                       for doc in all_splits]
+    embeddings_array = np.array(embeddings_list)
+
+    # Create a FAISS index
+    dimension = embeddings_array.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(embeddings_array)
+
+    return index, mock_documents
+
+@patch(
+        "app.core.rag_graph.index",
+        new_callable=lambda: build_mock_vector_store()[0]
         )
-        assert serialized == expected_serialized
+@patch(
+        "app.core.rag_graph.documents",
+        new_callable=lambda: build_mock_vector_store()[1]
+        )
+def test_retrieve(mock_documents, mock_index):
+    # Call the retrieve function
+    query = "retrieve Content of document"
+    result = retrieve(query)
 
-        # Check the content of the retrieved documents
-        for doc in retrieved_docs:
-            assert "Content of document" in doc.page_content
+    # Check that the result is a string
+    assert isinstance(result, str)
 
+    # Check that the result contains two "Source: {'source': ...}" objects
+    sources = result.split("Source: ")
+    assert len(sources) == 3  
+
+    # Check the content of the serialized string
+    expected_serialized_part1 = (
+        "{'source': 'http://example.com/doc1', 'start_index': 0}\n"
+        "Content: Content of document 1\n\n"
+    )
+    expected_serialized_part2 = (
+        "{'source': 'http://example.com/doc2', 'start_index': 0}\n"
+        "Content: Content of document 2"
+    )
+    assert expected_serialized_part1 in result
+    assert expected_serialized_part2 in result
 
 # Run the test
 test_retrieve()
