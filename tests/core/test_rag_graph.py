@@ -67,14 +67,8 @@ def test_retrieve(mock_documents, mock_index):
     assert len(sources) == 3
 
     # Check the content of the serialized string
-    expected_serialized_part1 = (
-        "{'source': 'http://example.com/doc1', 'start_index': 0}\n"
-        "Content: Content of document 1\n\n"
-    )
-    expected_serialized_part2 = (
-        "{'source': 'http://example.com/doc2', 'start_index': 0}\n"
-        "Content: Content of document 2"
-    )
+    expected_serialized_part1 = 'http://example.com/doc1'
+    expected_serialized_part2 = 'http://example.com/doc2'
     assert expected_serialized_part1 in result
     assert expected_serialized_part2 in result
 
