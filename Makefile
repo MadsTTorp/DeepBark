@@ -1,3 +1,5 @@
+export PYTHONPATH := $(CURDIR)
+
 .PHONY: all run-pipeline clean
 
 # Define the test output directory.
