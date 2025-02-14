@@ -1,0 +1,66 @@
+name: Run Pipeline and Release Artifacts
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+      branches:
+        - main
+  workflow_dispatch:
+    branches:
+      - main
+
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    env:
+      # Ensure that the repository root is in PYTHONPATH so that 'src' is discoverable.
+      PYTHONPATH: ${{ github.workspace }}
+    steps:
+      # 1. Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # 2. Set up Python environment
+      - name: Set Up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # 3. Install dependencies
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # 4. Run the pipeline via Makefile (which calls pipeline_creation.py)
+      - name: Run Pipeline
+        run: make run-pipeline
+
+      # 5. Package the generated artifacts into a zip file
+      - name: Package Artifacts
+        run: |
+          python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}
+
+      # 6. Create a GitHub Release
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "release-${{ github.run_number }}"
+          release_name: "Release ${{ github.run_number }}"
+          draft: false
+          prerelease: false
+
+      # 7. Upload the packaged artifact as a release asset
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./output/release_artifacts_${{ github.run_number }}.zip
+          asset_name: release_artifacts_${{ github.run_number }}.zip
+          asset_content_type: application/zip
