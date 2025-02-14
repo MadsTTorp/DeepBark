@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import time
 import argparse
 import requests
 import logging
@@ -153,9 +154,24 @@ def main():
     session = requests.Session()
     session.headers.update({"User-Agent": USER_AGENT})
 
-    with WebDriverContext() as driver:
-        race_links = get_race_links(driver, BASE_URL)
-        logging.info(f"Found {len(race_links)} race links")
+    # Retry logic for web scraping in case no race links are found.
+    max_retries = 3
+    delay_between_retries = 10  # seconds
+    race_links = []
+    for attempt in range(max_retries):
+        with WebDriverContext() as driver:
+            race_links = get_race_links(driver, BASE_URL)
+        if race_links:
+            logging.info(f"Found {len(race_links)} race links on attempt {attempt+1}.")
+            break
+        else:
+            logging.warning(
+                f"No race links found on attempt {attempt+1}/{max_retries}. n\
+                - Retrying in {delay_between_retries} seconds...")
+            time.sleep(delay_between_retries)
+    if not race_links:
+        logging.error("No race links found after retries. Exiting pipeline.")
+        return
 
     scraped_data = []
     for link in race_links[:10]:
@@ -163,6 +179,10 @@ def main():
         if data:
             scraped_data.append(data)
             logging.info(f"Processed: {link}")
+
+    if not scraped_data:
+        logging.error("No dog profiles scraped. Exiting pipeline.")
+        return
 
     logging.info(f"Successfully collected {len(scraped_data)} dog profiles")
     save_as_parquet(scraped_data, output_filepath)
