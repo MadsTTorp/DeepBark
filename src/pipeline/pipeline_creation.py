@@ -111,6 +111,7 @@ def parse_pipeline_args():
     return parser.parse_args()
 
 if __name__ == "__main__":
+    
     args = parse_pipeline_args()
     dog_breed_pipeline(
         scrape_output_path=args.scrape_output_path,
