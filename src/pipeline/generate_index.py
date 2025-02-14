@@ -9,11 +9,13 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import faiss
 from sentence_transformers import SentenceTransformer
 
-# Define a custom cache directory for storing the model
-MODEL_CACHE_DIR = os.path.expanduser("~/.cache/sentence_transformers/")
-os.makedirs(MODEL_CACHE_DIR, exist_ok=True)  # Ensure directory exists
+# Import configuration defaults.
+from src.config import config
 
-# Load the model once (global variable)
+# Define a custom cache directory for storing the model.
+MODEL_CACHE_DIR = os.path.expanduser("~/.cache/sentence_transformers/")
+os.makedirs(MODEL_CACHE_DIR, exist_ok=True)
+
 MODEL_NAME = "all-MiniLM-L6-v2"
 logging.info(f"Loading model '{MODEL_NAME}' from cache directory: {MODEL_CACHE_DIR}")
 model = SentenceTransformer(MODEL_NAME, cache_folder=MODEL_CACHE_DIR)
@@ -25,17 +27,17 @@ def parse_args():
     parser.add_argument(
         "--input-path",
         type=str,
-        default="output",
+        default=config.OUTPUT_PATH,
         help="Directory path where the document data file is located."
     )
     parser.add_argument(
-        "--input-file", type=str, required=True,
+        "--input-file", type=str, default=config.DOCUMENT_OUTPUT_FILE,
         help="Path to input documents file (Parquet format)."
     )
     parser.add_argument(
         "--output-path",
         type=str,
-        default="output",
+        default=config.OUTPUT_PATH,
         help="Directory where the FAISS index and chunk metadata will be stored."
     )
     parser.add_argument(
@@ -51,7 +53,6 @@ def parse_args():
         help="SentenceTransformer model name for embedding generation."
     )
     return parser.parse_args()
-
 
 def load_documents(input_filepath: str):
     try:
@@ -81,7 +82,6 @@ def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):
     return all_chunks
 
 def create_index(chunks):
-    """Create a FAISS index from document chunks using a cached SentenceTransformer model."""
     embeddings = [model.encode(chunk["page_content"], convert_to_numpy=True) for chunk in chunks]
     embeddings_array = np.vstack(embeddings)
     
@@ -124,8 +124,8 @@ def main():
         chunk_overlap=args.chunk_overlap
     )
     index = create_index(chunks)
-    index_filepath = os.path.join(args.output_path, "faiss_index.index")
-    chunks_filepath = os.path.join(args.output_path, "chunks.pkl")
+    index_filepath = os.path.join(args.output_path, config.INDEX_FILE)
+    chunks_filepath = os.path.join(args.output_path, config.CHUNKS_FILE)
     save_index(index, index_filepath)
     save_chunks(chunks, chunks_filepath)
     logging.info("Indexing process completed successfully.")
