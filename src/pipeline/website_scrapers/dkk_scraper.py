@@ -30,6 +30,28 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 
+# Setup cache directory for WebDriver
+os.environ["WDM_LOCAL"] = "1"  # Ensure local caching
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Scrape dog breed information from DKK and save as Parquet."
+    )
+    parser.add_argument(
+        "--output-path",
+        type=str,
+        default="output",
+        help="Directory path for output files"
+    )
+    parser.add_argument(
+        "--output-file",
+        type=str,
+        default="scraped_breeds.parquet",
+        help="Output file name for scraped data"
+    )
+    return parser.parse_args()
+
+
 class WebDriverContext:
     """Context manager for handling WebDriver resources."""
     def __enter__(self):
@@ -118,23 +140,6 @@ def save_as_parquet(data: List[Dict], filename: str):
     df.to_parquet(filename, engine='pyarrow')
     logging.info(f"Saved scraped data to {filename}")
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Scrape dog breed information from DKK and save as Parquet."
-    )
-    parser.add_argument(
-        "--output-path",
-        type=str,
-        default="output",
-        help="Directory path for output files"
-    )
-    parser.add_argument(
-        "--output-file",
-        type=str,
-        default="scraped_breeds.parquet",
-        help="Output file name for scraped data"
-    )
-    return parser.parse_args()
 
 def main():
     args = parse_args()
@@ -152,7 +157,7 @@ def main():
         logging.info(f"Found {len(race_links)} race links")
 
     scraped_data = []
-    for link in race_links:
+    for link in race_links[:10]:
         data = get_dog_info(link, session)
         if data:
             scraped_data.append(data)
