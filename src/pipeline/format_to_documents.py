@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
 import os
+import sys
 import argparse
 import logging
 from typing import List, Dict, Any
@@ -104,12 +104,21 @@ def main():
     )
     args = parse_args()
     input_filepath = os.path.join(args.input_path, args.input_file)
-    output_filepath = os.path.join(args.output_path, args.output_file)
-    logging.info(f"Loading scraped data from {input_filepath}")
+    
+    # Load scraped data and exit if empty
     df = load_scraped_data(input_filepath)
+    if df.empty:
+        logging.error("Scraped data is empty. Exiting without overwriting document file.")
+        sys.exit(1)
+    
     logging.info("Creating documents from scraped data.")
     documents = create_documents(df)
+    if not documents:
+        logging.error("No documents were created. Exiting pipeline.")
+        sys.exit(1)
+    
     os.makedirs(args.output_path, exist_ok=True)
+    output_filepath = os.path.join(args.output_path, args.output_file)
     logging.info(f"Saving documents to {output_filepath}")
     save_documents(documents, output_filepath)
 
