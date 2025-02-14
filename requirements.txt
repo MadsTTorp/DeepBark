@@ -1,5 +1,6 @@
 ipykernel
 pandas
+pyarrow
 numpy
 bs4
 python-dotenv
