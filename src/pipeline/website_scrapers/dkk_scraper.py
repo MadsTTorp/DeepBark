@@ -12,6 +12,9 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
 from webdriver_manager.firefox import GeckoDriverManager
 
+# Import configuration defaults.
+from src.config import config
+
 # Constants for the DKK website
 BASE_URL = "https://www.dkk.dk/race"
 RACE_SELECT_CLASS = "lex-custom-select font-semibold pl-2 md: p-1"
@@ -20,9 +23,11 @@ LEXICON_CLASS = "md:grid grid-cols-2 gap-x-5"
 LEXICON_TEXT_CLASS = "lex-text"
 DOCUMENTS_CONTAINER_CLASS = "mx-auto lg:max-w-screen-lg px-10 py-10 lg:py-20"
 REQUEST_TIMEOUT = 10
-USER_AGENT = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-              "AppleWebKit/537.36 (KHTML, like Gecko) "
-              "Chrome/91.0.4472.124 Safari/537.36")
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/91.0.4472.124 Safari/537.36"
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,8 +35,8 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()]
 )
 
-# Setup cache directory for WebDriver
-os.environ["WDM_LOCAL"] = "1"  # Ensure local caching
+# Use local cache for webdriver.
+os.environ["WDM_LOCAL"] = "1"
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -40,17 +45,16 @@ def parse_args():
     parser.add_argument(
         "--output-path",
         type=str,
-        default="output",
+        default=config.OUTPUT_PATH,
         help="Directory path for output files"
     )
     parser.add_argument(
         "--output-file",
         type=str,
-        default="scraped_breeds.parquet",
+        default=config.SCRAPE_OUTPUT_FILE,
         help="Output file name for scraped data"
     )
     return parser.parse_args()
-
 
 class WebDriverContext:
     """Context manager for handling WebDriver resources."""
@@ -140,18 +144,15 @@ def save_as_parquet(data: List[Dict], filename: str):
     df.to_parquet(filename, engine='pyarrow')
     logging.info(f"Saved scraped data to {filename}")
 
-
 def main():
     args = parse_args()
     os.makedirs(args.output_path, exist_ok=True)
     output_filepath = os.path.join(args.output_path, args.output_file)
     logging.info(f"Output will be saved to: {output_filepath}")
 
-    # Setup HTTP session
     session = requests.Session()
     session.headers.update({"User-Agent": USER_AGENT})
 
-    # Use headless browser to get the list of race URLs
     with WebDriverContext() as driver:
         race_links = get_race_links(driver, BASE_URL)
         logging.info(f"Found {len(race_links)} race links")
