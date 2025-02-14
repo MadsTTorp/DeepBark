@@ -33,9 +33,9 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      # 4. Run the pipeline via Makefile (which calls pipeline_creation.py)
-      - name: Run Pipeline
-        run: make run-pipeline
+      # 4. Run the pipeline 
+      - name: Run Pipeline with Config File
+        run: python src/pipeline/pipeline_creation.py --config src/config/production_config.yaml
 
       # 5. Package the generated artifacts into a zip file
       - name: Package Artifacts
