@@ -9,62 +9,14 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 import faiss
 from sentence_transformers import SentenceTransformer
 
-def load_documents(input_filepath: str):
-    try:
-        df = pd.read_parquet(input_filepath)
-        documents = df.to_dict(orient="records")
-        logging.info(f"Loaded {len(documents)} documents from {input_filepath}.")
-        return documents
-    except Exception as e:
-        logging.error(f"Error loading documents: {e}")
-        raise
+# Define a custom cache directory for storing the model
+MODEL_CACHE_DIR = os.path.expanduser("~/.cache/sentence_transformers/")
+os.makedirs(MODEL_CACHE_DIR, exist_ok=True)  # Ensure directory exists
 
-def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        add_start_index=True,
-    )
-    all_chunks = []
-    for doc in documents:
-        chunks = text_splitter.split_text(doc["page_content"])
-        for chunk in chunks:
-            all_chunks.append({
-                "page_content": chunk,
-                "metadata": doc["metadata"]
-            })
-    logging.info(f"Created {len(all_chunks)} chunks from documents.")
-    return all_chunks
-
-def create_index(chunks, model_name="all-MiniLM-L6-v2"):
-    model = SentenceTransformer(model_name)
-    embeddings = []
-    for chunk in chunks:
-        emb = model.encode(chunk["page_content"], convert_to_numpy=True)
-        embeddings.append(emb)
-    embeddings_array = np.vstack(embeddings)
-    dimension = embeddings_array.shape[1]
-    index = faiss.IndexFlatL2(dimension)
-    index.add(embeddings_array)
-    logging.info(f"FAISS index created with {index.ntotal} vectors (dimension {dimension}).")
-    return index
-
-def save_index(index, output_index_filepath):
-    try:
-        faiss.write_index(index, output_index_filepath)
-        logging.info(f"Index saved to {output_index_filepath}.")
-    except Exception as e:
-        logging.error(f"Error saving index: {e}")
-        raise
-
-def save_chunks(chunks, output_chunks_filepath):
-    try:
-        with open(output_chunks_filepath, "wb") as f:
-            pickle.dump(chunks, f)
-        logging.info(f"Chunk metadata saved to {output_chunks_filepath}.")
-    except Exception as e:
-        logging.error(f"Error saving chunk metadata: {e}")
-        raise
+# Load the model once (global variable)
+MODEL_NAME = "all-MiniLM-L6-v2"
+logging.info(f"Loading model '{MODEL_NAME}' from cache directory: {MODEL_CACHE_DIR}")
+model = SentenceTransformer(MODEL_NAME, cache_folder=MODEL_CACHE_DIR)
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -100,6 +52,63 @@ def parse_args():
     )
     return parser.parse_args()
 
+
+def load_documents(input_filepath: str):
+    try:
+        df = pd.read_parquet(input_filepath)
+        documents = df.to_dict(orient="records")
+        logging.info(f"Loaded {len(documents)} documents from {input_filepath}.")
+        return documents
+    except Exception as e:
+        logging.error(f"Error loading documents: {e}")
+        raise
+
+def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=chunk_size,
+        chunk_overlap=chunk_overlap,
+        add_start_index=True,
+    )
+    all_chunks = []
+    for doc in documents:
+        chunks = text_splitter.split_text(doc["page_content"])
+        for chunk in chunks:
+            all_chunks.append({
+                "page_content": chunk,
+                "metadata": doc["metadata"]
+            })
+    logging.info(f"Created {len(all_chunks)} chunks from documents.")
+    return all_chunks
+
+def create_index(chunks):
+    """Create a FAISS index from document chunks using a cached SentenceTransformer model."""
+    embeddings = [model.encode(chunk["page_content"], convert_to_numpy=True) for chunk in chunks]
+    embeddings_array = np.vstack(embeddings)
+    
+    dimension = embeddings_array.shape[1]
+    index = faiss.IndexFlatL2(dimension)
+    index.add(embeddings_array)
+    
+    logging.info(f"FAISS index created with {index.ntotal} vectors (dimension {dimension}).")
+    return index
+
+def save_index(index, output_index_filepath):
+    try:
+        faiss.write_index(index, output_index_filepath)
+        logging.info(f"Index saved to {output_index_filepath}.")
+    except Exception as e:
+        logging.error(f"Error saving index: {e}")
+        raise
+
+def save_chunks(chunks, output_chunks_filepath):
+    try:
+        with open(output_chunks_filepath, "wb") as f:
+            pickle.dump(chunks, f)
+        logging.info(f"Chunk metadata saved to {output_chunks_filepath}.")
+    except Exception as e:
+        logging.error(f"Error saving chunk metadata: {e}")
+        raise
+
 def main():
     args = parse_args()
     input_filepath = os.path.join(args.input_path, args.input_file)
@@ -114,7 +123,7 @@ def main():
         chunk_size=args.chunk_size, 
         chunk_overlap=args.chunk_overlap
     )
-    index = create_index(chunks, model_name=args.model_name)
+    index = create_index(chunks)
     index_filepath = os.path.join(args.output_path, "faiss_index.index")
     chunks_filepath = os.path.join(args.output_path, "chunks.pkl")
     save_index(index, index_filepath)
