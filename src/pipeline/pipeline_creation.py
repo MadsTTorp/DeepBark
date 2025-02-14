@@ -4,6 +4,9 @@ import os
 from prefect import flow, task, get_run_logger
 import argparse
 
+# Import configuration defaults.
+from src.config import config
+
 @task
 def run_scraping(scrape_output_path: str, scrape_output_file: str):
     logger = get_run_logger()
@@ -57,7 +60,6 @@ def dog_breed_pipeline(scrape_output_path: str,
                        document_output_path: str,
                        document_output_file: str,
                        index_output_path: str):
-    # Ensure output directories exist.
     os.makedirs(scrape_output_path, exist_ok=True)
     os.makedirs(document_output_path, exist_ok=True)
     os.makedirs(index_output_path, exist_ok=True)
@@ -81,37 +83,36 @@ def parse_pipeline_args():
     parser.add_argument(
         "--scrape-output-path",
         type=str,
-        default="output",
+        default=config.OUTPUT_PATH,
         help="Directory path for the scraping output."
     )
     parser.add_argument(
         "--scrape-output-file",
         type=str,
-        default="scraped_breeds.parquet",
+        default=config.SCRAPE_OUTPUT_FILE,
         help="Filename for the scraping output (Parquet format)."
     )
     parser.add_argument(
         "--document-output-path",
         type=str,
-        default="output",
+        default=config.OUTPUT_PATH,
         help="Directory path for the document output."
     )
     parser.add_argument(
         "--document-output-file",
         type=str,
-        default="breed_documents.parquet",
+        default=config.DOCUMENT_OUTPUT_FILE,
         help="Filename for the document output (Parquet format)."
     )
     parser.add_argument(
         "--index-output-path",
         type=str,
-        default="output",
+        default=config.OUTPUT_PATH,
         help="Directory path for the index output."
     )
     return parser.parse_args()
 
 if __name__ == "__main__":
-    
     args = parse_pipeline_args()
     dog_breed_pipeline(
         scrape_output_path=args.scrape_output_path,
