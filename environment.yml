@@ -1,4 +1,4 @@
-name: woofwisdom-gpt
+name: py311_DeepBark
 channels:
   - defaults
   - conda-forge
