@@ -1,11 +1,16 @@
-#!/usr/bin/env python3
-import subprocess
 import os
-from prefect import flow, task, get_run_logger
 import argparse
+import subprocess
+import yaml
+from prefect import flow, task, get_run_logger
 
 # Import configuration defaults.
 from src.config import config
+
+def load_config(config_path: str) -> dict:
+    """Load configuration from a YAML file."""
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
 
 @task
 def run_scraping(scrape_output_path: str, scrape_output_file: str):
@@ -21,10 +26,8 @@ def run_scraping(scrape_output_path: str, scrape_output_file: str):
     logger.info("Scraping step completed.")
 
 @task
-def run_document_creation(scrape_output_path: str, 
-                          scrape_output_file: str,
-                          document_output_path: str, 
-                          document_output_file: str):
+def run_document_creation(scrape_output_path: str, scrape_output_file: str,
+                          document_output_path: str, document_output_file: str):
     logger = get_run_logger()
     cmd = [
         "python",
@@ -39,8 +42,7 @@ def run_document_creation(scrape_output_path: str,
     logger.info("Document creation step completed.")
 
 @task
-def run_index_creation(document_output_path: str, 
-                       document_output_file: str,
+def run_index_creation(document_output_path: str, document_output_file: str,
                        index_output_path: str):
     logger = get_run_logger()
     cmd = [
@@ -64,60 +66,45 @@ def dog_breed_pipeline(scrape_output_path: str,
     os.makedirs(document_output_path, exist_ok=True)
     os.makedirs(index_output_path, exist_ok=True)
     run_scraping(scrape_output_path, scrape_output_file)
-    run_document_creation(
-        scrape_output_path, 
-        scrape_output_file,
-        document_output_path, 
-        document_output_file
-    )
-    run_index_creation(
-        document_output_path, 
-        document_output_file, 
-        index_output_path
-    )
+    run_document_creation(scrape_output_path, scrape_output_file,
+                          document_output_path, document_output_file)
+    run_index_creation(document_output_path, document_output_file, index_output_path)
 
-def parse_pipeline_args():
+def parse_args():
     parser = argparse.ArgumentParser(
-        description="Orchestrate the dog breed data pipeline using Prefect."
+        description="Orchestrate the dog breed data pipeline using Prefect with production config."
     )
     parser.add_argument(
-        "--scrape-output-path",
+        "--config",
         type=str,
-        default=config.OUTPUT_PATH,
-        help="Directory path for the scraping output."
-    )
-    parser.add_argument(
-        "--scrape-output-file",
-        type=str,
-        default=config.SCRAPE_OUTPUT_FILE,
-        help="Filename for the scraping output (Parquet format)."
-    )
-    parser.add_argument(
-        "--document-output-path",
-        type=str,
-        default=config.OUTPUT_PATH,
-        help="Directory path for the document output."
-    )
-    parser.add_argument(
-        "--document-output-file",
-        type=str,
-        default=config.DOCUMENT_OUTPUT_FILE,
-        help="Filename for the document output (Parquet format)."
-    )
-    parser.add_argument(
-        "--index-output-path",
-        type=str,
-        default=config.OUTPUT_PATH,
-        help="Directory path for the index output."
+        default="src/config/production_config.yaml",
+        help="Path to the production configuration YAML file."
     )
     return parser.parse_args()
 
+def main():
+    args = parse_args()
+    config = load_config(args.config)
+    # Extract values from the configuration file.
+    # We allow overriding a generic "output_path" if more specific keys are not provided.
+    scrape_output_path = config.get("scrape_output_path", config.get("output_path", "output"))
+    scrape_output_file = config.get("scrape_output_file", "scraped_breeds.parquet")
+    document_output_path = config.get("document_output_path", config.get("output_path", "output"))
+    document_output_file = config.get("document_output_file", "breed_documents.parquet")
+    index_output_path = config.get("index_output_path", config.get("output_path", "output"))
+
+    print("Using configuration:")
+    print(f"  Scrape output path:   {scrape_output_path}")
+    print(f"  Scrape output file:   {scrape_output_file}")
+    print(f"  Document output path: {document_output_path}")
+    print(f"  Document output file: {document_output_file}")
+    print(f"  Index output path:    {index_output_path}")
+
+    dog_breed_pipeline(scrape_output_path,
+                       scrape_output_file,
+                       document_output_path,
+                       document_output_file,
+                       index_output_path)
+
 if __name__ == "__main__":
-    args = parse_pipeline_args()
-    dog_breed_pipeline(
-        scrape_output_path=args.scrape_output_path,
-        scrape_output_file=args.scrape_output_file,
-        document_output_path=args.document_output_path,
-        document_output_file=args.document_output_file,
-        index_output_path=args.index_output_path
-    )
+    main()
