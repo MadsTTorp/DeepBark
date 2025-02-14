@@ -7,10 +7,43 @@ import pandas as pd
 from pydantic import BaseModel
 from langchain.schema import Document  # Optional; can use directly
 
-# Data model for document structure
+# Import configuration defaults.
+from src.config import config
+
 class BreedDocument(BaseModel):
     page_content: str
     metadata: Dict[str, Any]
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Create document representations from scraped dog breed data."
+    )
+    parser.add_argument(
+        "--input-path",
+        type=str,
+        default=config.OUTPUT_PATH,
+        help="Directory path where the scraped data file is located."
+    )
+    parser.add_argument(
+        "--input-file",
+        type=str,
+        default=config.SCRAPE_OUTPUT_FILE,
+        help="Filename of the scraped data (Parquet format)."
+    )
+    parser.add_argument(
+        "--output-path",
+        type=str,
+        default=config.OUTPUT_PATH,
+        help="Directory path where the documents file will be saved."
+    )
+    parser.add_argument(
+        "--output-file",
+        type=str,
+        default=config.DOCUMENT_OUTPUT_FILE,
+        help="Output filename for the documents (Parquet format)."
+    )
+    return parser.parse_args()
+
 
 def load_scraped_data(filename: str) -> pd.DataFrame:
     try:
@@ -62,36 +95,6 @@ def save_documents(documents: List[Dict], filename: str):
     except Exception as e:
         logging.error(f"Failed to save documents to {filename}: {e}")
         raise
-
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Create document representations from scraped dog breed data."
-    )
-    parser.add_argument(
-        "--input-path",
-        type=str,
-        default="output",
-        help="Directory path where the scraped data file is located."
-    )
-    parser.add_argument(
-        "--input-file",
-        type=str,
-        default="scraped_breeds.parquet",
-        help="Filename of the scraped data (Parquet format)."
-    )
-    parser.add_argument(
-        "--output-path",
-        type=str,
-        default="output",
-        help="Directory path where the documents file will be saved."
-    )
-    parser.add_argument(
-        "--output-file",
-        type=str,
-        default="breed_documents.parquet",
-        help="Output filename for the documents (Parquet format)."
-    )
-    return parser.parse_args()
 
 def main():
     logging.basicConfig(
