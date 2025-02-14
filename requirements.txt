@@ -1,4 +1,5 @@
 ipykernel
+pandas
 numpy
 bs4
 python-dotenv
@@ -12,3 +13,7 @@ pydantic
 uvicorn
 faiss-cpu
 pytest
+selenium
+webdriver_manager
+prefect
+sentence_transformers
