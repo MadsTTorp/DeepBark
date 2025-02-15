@@ -33,8 +33,6 @@ jobs:
 
       - name: Package Artifacts
         run: python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}.zip
-      - name: List Output Files (Debug)
-        run: ls -la output
 
       # Create a release and upload the artifact using a maintained action
       - name: Create GitHub Release and Upload Asset
@@ -42,4 +40,4 @@ jobs:
         with:
           tag: "release-${{ github.run_number }}"
           name: "Release ${{ github.run_number }}"
-          files: output/release_artifacts_${{ github.run_number }}.zip
+          files: release_artifacts_${{ github.run_number }}.zip
