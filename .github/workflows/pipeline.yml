@@ -13,33 +13,38 @@ jobs:
   pipeline:
     runs-on: ubuntu-latest
     env:
-      # Ensure that the repository root is in PYTHONPATH so that 'src' is discoverable.
       PYTHONPATH: ${{ github.workspace }}
     steps:
       # 1. Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # 2. Set up Docker Buildx (optional but recommended for caching & multi-platform builds)
+      # 2. Prepare Output Directory on Host
+      - name: Prepare Output Directory
+        run: |
+          mkdir -p ${{ github.workspace }}/output
+          chmod 777 ${{ github.workspace }}/output
+
+      # 3. Set up Docker Buildx (optional but recommended for caching & multi-platform builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # 3. Build the Docker image using your Dockerfile from the repository root.
+      # 4. Build the Docker image using your Dockerfile
       - name: Build Docker image
         run: docker build -t my-project:latest .
 
-      # 4. Run the pipeline in a container with a volume mount for the output directory.
-      #    The command creates /app/output, fixes permissions, then runs the pipeline.
+      # 5. Run the pipeline in a container with a volume mount for the output directory.
+      #    We remove the chown command because the output directory is already prepared.
       - name: Run Pipeline in Container
         run: |
           docker run --rm -v ${{ github.workspace }}/output:/app/output my-project:latest \
-            bash -c "mkdir -p /app/output && chown -R appuser:appuser /app/output && python src/pipeline/pipeline_creation.py --config src/config/production_config.yaml"
+            bash -c "mkdir -p /app/output && python src/pipeline/pipeline_creation.py --config src/config/production_config.yaml"
 
-      # 5. Package the generated artifacts into a zip file.
+      # 6. Package the generated artifacts into a zip file.
       - name: Package Artifacts
         run: python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}
 
-      # 6. Create a GitHub Release.
+      # 7. Create a GitHub Release.
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -51,7 +56,7 @@ jobs:
           draft: false
           prerelease: false
 
-      # 7. Upload the packaged artifact as a release asset.
+      # 8. Upload the packaged artifact as a release asset.
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
