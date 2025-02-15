@@ -1,4 +1,4 @@
-name: Run Pipeline and Release Artifacts
+name: Run scraping pipeline
 
 on:
   schedule:
@@ -31,8 +31,8 @@ jobs:
         run: docker run --rm my-project:latest
 
       # 5. Package the generated artifacts
-    - name: Run Pipeline in Container
-      run: docker run --rm -v ${{ github.workspace }}/output:/app/output my-project:latest
+      - name: Run Pipeline in Container
+        run: docker run --rm -v ${{ github.workspace }}/output:/app/output my-project:latest
 
       # 6. Create a GitHub Release
       - name: Create GitHub Release
