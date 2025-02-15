@@ -81,10 +81,8 @@ def get_race_links(driver: webdriver.Firefox, url: str) -> List[str]:
     try:
         driver.get(url)
         # Wait for the select element to be present
-        WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CLASS_NAME, RACE_SELECT_CLASS))
-        )
-        
+        time.sleet(5)
+
         # Additional wait to ensure the options are populated
         max_wait_time = 20  # Maximum wait time in seconds
         wait_interval = 2  # Interval between checks in seconds
