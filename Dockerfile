@@ -20,8 +20,11 @@ RUN wget -q "https://github.com/mozilla/geckodriver/releases/download/v${GECKODR
     tar -xzf "geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz" -C /usr/local/bin && \
     rm "geckodriver-v${GECKODRIVER_VERSION}-linux64.tar.gz"
 
-# Set the working directory
+# Set the working directory in the container
 WORKDIR /app
+
+# Add /app to PYTHONPATH so Python can find the src/ directory
+ENV PYTHONPATH=/app
 
 # Create a non-root user for running the app
 RUN useradd --create-home --shell /bin/bash appuser && \
