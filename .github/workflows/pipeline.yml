@@ -40,4 +40,4 @@ jobs:
         with:
           tag: "release-${{ github.run_number }}"
           name: "Release ${{ github.run_number }}"
-          files: release_artifacts_${{ github.run_number }}.zip
+          artifacts: release_artifacts_${{ github.run_number }}.zip
