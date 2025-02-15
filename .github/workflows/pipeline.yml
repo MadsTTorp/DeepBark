@@ -32,25 +32,17 @@ jobs:
         run: docker run --rm -v "${{ github.workspace }}/output:/app/output" my-project:latest
 
       - name: Package Artifacts
-        run: python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}
+        run: |
+          # Ensure the archive name includes the .zip extension
+          python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}.zip
 
-      - name: Create GitHub Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: "release-${{ github.run_number }}"
-          release_name: "Release ${{ github.run_number }}"
-          draft: false
-          prerelease: false
+      - name: List Output Files (Debug)
+        run: ls -la output
 
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Create a release and upload the artifact using a maintained action
+      - name: Create GitHub Release and Upload Asset
+        uses: ncipollo/release-action@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./output/release_artifacts_${{ github.run_number }}.zip
-          asset_name: release_artifacts_${{ github.run_number }}.zip
-          asset_content_type: application/zip
+          tag: "release-${{ github.run_number }}"
+          name: "Release ${{ github.run_number }}"
+          files: output/release_artifacts_${{ github.run_number }}.zip
