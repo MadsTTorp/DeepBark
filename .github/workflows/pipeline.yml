@@ -13,8 +13,6 @@ on:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
-    container:
-      image: 
     env:
       # Ensure that the repository root is in PYTHONPATH so that 'src' is discoverable.
       PYTHONPATH: ${{ github.workspace }}
