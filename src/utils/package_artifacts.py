@@ -9,6 +9,10 @@ def package_artifacts(output_path, archive_name):
         print(f"Output directory '{output_path}' does not exist. Aborting packaging step.")
         exit(1)
     
+    # Remove trailing '.zip' if provided to avoid a double extension.
+    if archive_name.lower().endswith('.zip'):
+        archive_name = archive_name[:-4]
+        
     # Calculate the parent directory of output_path
     parent_dir = os.path.dirname(os.path.abspath(output_path))
     archive_path = os.path.join(parent_dir, archive_name)
