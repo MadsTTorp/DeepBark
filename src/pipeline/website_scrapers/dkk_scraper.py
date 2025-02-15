@@ -12,10 +12,6 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service
 from webdriver_manager.firefox import GeckoDriverManager
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-
 
 # Import configuration defaults.
 from src.config import config
@@ -80,26 +76,11 @@ def get_race_links(driver: webdriver.Firefox, url: str) -> List[str]:
     """Extract race links from the main breed page."""
     try:
         driver.get(url)
-        # Wait for the select element to be present
-        time.sleet(5)
-
-        # Additional wait to ensure the options are populated
-        max_wait_time = 20  # Maximum wait time in seconds
-        wait_interval = 2  # Interval between checks in seconds
-        elapsed_time = 0
-        
-        while elapsed_time < max_wait_time:
-            soup = BeautifulSoup(driver.page_source, "html.parser")
-            select_element = soup.find("select", class_=RACE_SELECT_CLASS)
-            if select_element and select_element.find_all("option"):
-                break
-            time.sleep(wait_interval)
-            elapsed_time += wait_interval
-        
-        if not select_element or not select_element.find_all("option"):
-            logging.warning("No race select element found on page or no options available")
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        select_element = soup.find("select", class_=RACE_SELECT_CLASS)
+        if not select_element:
+            logging.warning("No race select element found on page")
             return []
-        
         return [
             option["value"] for option in select_element.find_all("option")
             if option.get("value") and "www.dkk.dk/race" in option["value"]
