@@ -9,7 +9,6 @@ on:
     branches:
       - main
 
-
 jobs:
   pipeline:
     runs-on: ubuntu-latest
@@ -21,24 +20,26 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # 2. Set up Docker Buildx (optional but recommended for caching & multi-platform)
+      # 2. Set up Docker Buildx (optional but recommended for caching & multi-platform builds)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
-      # 3. Build the Docker image
+      # 3. Build the Docker image using your Dockerfile from the repository root.
       - name: Build Docker image
         run: docker build -t my-project:latest .
 
-      # 4. Run the pipeline in a container
+      # 4. Run the pipeline in a container with a volume mount for the output directory.
+      #    The command creates /app/output, fixes permissions, then runs the pipeline.
       - name: Run Pipeline in Container
-        run: docker run --rm -v ${{ github.workspace }}/output:/app/output my-project:latest
-
-      # 5. Package the generated artifacts into a zip file
-      - name: Package Artifacts
         run: |
-          python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}
+          docker run --rm -v ${{ github.workspace }}/output:/app/output my-project:latest \
+            bash -c "mkdir -p /app/output && chown -R appuser:appuser /app/output && python src/pipeline/pipeline_creation.py --config src/config/production_config.yaml"
 
-      # 6. Create a GitHub Release
+      # 5. Package the generated artifacts into a zip file.
+      - name: Package Artifacts
+        run: python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}
+
+      # 6. Create a GitHub Release.
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -50,7 +51,7 @@ jobs:
           draft: false
           prerelease: false
 
-      # 7. Upload the packaged artifact as a release asset
+      # 7. Upload the packaged artifact as a release asset.
       - name: Upload Release Asset
         uses: actions/upload-release-asset@v1
         env:
