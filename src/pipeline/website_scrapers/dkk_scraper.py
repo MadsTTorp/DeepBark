@@ -174,7 +174,7 @@ def main():
         return
 
     scraped_data = []
-    for link in race_links[:10]:
+    for link in race_links:
         data = get_dog_info(link, session)
         if data:
             scraped_data.append(data)
