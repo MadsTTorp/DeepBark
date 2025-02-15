@@ -2,45 +2,37 @@ name: Run Pipeline and Release Artifacts
 
 on:
   schedule:
-    - cron: '0 0 * * 0'
-      branches:
-        - main
+    - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
   workflow_dispatch:
-    branches:
-      - main
-
 
 jobs:
   pipeline:
     runs-on: ubuntu-latest
     env:
-      # Ensure that the repository root is in PYTHONPATH so that 'src' is discoverable.
+      # Set any needed environment variables here.
       PYTHONPATH: ${{ github.workspace }}
     steps:
       # 1. Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # 2. Set up Python environment
-      - name: Set Up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+      # 2. Set up Docker Buildx (optional but recommended for caching & multi-platform)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-      # 3. Install dependencies
-      - name: Install Dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
+      # 3. Build the Docker image
+      - name: Build Docker image
+        run: docker build -t my-project:latest .
 
-      # 4. Run the pipeline 
-      - name: Run Pipeline with Config File
-        run: python src/pipeline/pipeline_creation.py --config src/config/production_config.yaml
+      # 4. Run the pipeline inside the container
+      # This will run the CMD defined in your Dockerfile, which is:
+      # python src/pipeline/pipeline_creation.py --config src/config/production_config.yaml
+      - name: Run Pipeline in Container
+        run: docker run --rm my-project:latest
 
-      # 5. Package the generated artifacts into a zip file
+      # 5. Package the generated artifacts
       - name: Package Artifacts
-        run: |
-          python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}
+        run: python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}
 
       # 6. Create a GitHub Release
       - name: Create GitHub Release
