@@ -31,6 +31,9 @@ RUN useradd --create-home --shell /bin/bash appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
+# Add /home/appuser/.local/bin to PATH so that installed scripts are found
+ENV PATH="/home/appuser/.local/bin:${PATH}"
+
 # Copy Python dependencies and install them
 COPY --chown=appuser:appuser requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
