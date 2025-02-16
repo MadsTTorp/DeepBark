@@ -83,7 +83,7 @@ def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):
     return all_chunks
 
 def create_index(chunks):
-    embeddings = [model.encode(chunk.page_content, convert_to_numpy=True) for chunk in chunks]
+    embeddings = [model.encode(chunk['page_content'], convert_to_numpy=True) for chunk in chunks]
     embeddings_array = np.vstack(embeddings)
     
     dimension = embeddings_array.shape[1]
