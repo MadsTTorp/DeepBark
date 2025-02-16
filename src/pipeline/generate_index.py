@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import faiss
+from langchain.schema import Document
 from sentence_transformers import SentenceTransformer
 
 # Import configuration defaults.
@@ -54,14 +55,14 @@ def parse_args():
     )
     return parser.parse_args()
 
-def load_documents(input_filepath: str):
+def load_documents(filename: str) -> list[Document]:
     try:
-        df = pd.read_parquet(input_filepath)
-        documents = df.to_dict(orient="records")
-        logging.info(f"Loaded {len(documents)} documents from {input_filepath}.")
+        with open(filename, "rb") as f:
+            documents = pickle.load(f)
+        logging.info(f"Loaded {len(documents)} documents from {filename}")
         return documents
     except Exception as e:
-        logging.error(f"Error loading documents: {e}")
+        logging.error(f"Error loading documents from {filename}: {e}")
         raise
 
 def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):

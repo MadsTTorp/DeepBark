@@ -6,7 +6,7 @@ from typing import List, Dict, Any
 import pandas as pd
 from pydantic import BaseModel
 from langchain.schema import Document
-import json
+import pickle
 
 # Import configuration defaults.
 from src.config import config
@@ -90,16 +90,9 @@ def create_documents(df: pd.DataFrame) -> List[Document]:
 
 def save_documents(documents: list[Document], filename: str):
     try:
-        docs = []
-        for doc in documents:
-            # Convert the Document to a dictionary.
-            doc_dict = doc.dict()
-            # Convert the metadata dict to a JSON string.
-            doc_dict["metadata"] = json.dumps(doc_dict["metadata"])
-            docs.append(doc_dict)
-        df = pd.DataFrame(docs)
-        df.to_parquet(filename, engine="pyarrow")
-        logging.info(f"Documents saved to {filename}")
+        with open(filename, "wb") as f:
+            pickle.dump(documents, f)
+        logging.info(f"Saved {len(documents)} documents to {filename}")
     except Exception as e:
         logging.error(f"Failed to save documents to {filename}: {e}")
         raise
