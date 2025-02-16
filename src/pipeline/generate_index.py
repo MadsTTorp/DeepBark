@@ -73,17 +73,17 @@ def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):
     )
     all_chunks = []
     for doc in documents:
-        chunks = text_splitter.split_text(doc["page_content"])
+        chunks = text_splitter.split_text(doc.page_content)
         for chunk in chunks:
             all_chunks.append({
                 "page_content": chunk,
-                "metadata": doc["metadata"]
+                "metadata": doc.metadata
             })
     logging.info(f"Created {len(all_chunks)} chunks from documents.")
     return all_chunks
 
 def create_index(chunks):
-    embeddings = [model.encode(chunk["page_content"], convert_to_numpy=True) for chunk in chunks]
+    embeddings = [model.encode(chunk.page_content, convert_to_numpy=True) for chunk in chunks]
     embeddings_array = np.vstack(embeddings)
     
     dimension = embeddings_array.shape[1]
