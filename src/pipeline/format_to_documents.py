@@ -5,7 +5,7 @@ import logging
 from typing import List, Dict, Any
 import pandas as pd
 from pydantic import BaseModel
-from langchain.schema import Document  # Optional; can use directly
+from langchain.schema import Document
 
 # Import configuration defaults.
 from src.config import config
@@ -68,13 +68,13 @@ def format_content(row: pd.Series) -> str:
     ]
     return "\n".join(content)
 
-def create_documents(df: pd.DataFrame) -> List[Dict]:
+def create_documents(df: pd.DataFrame) -> List[Document]:
     documents = []
     for _, row in df.iterrows():
         breed_name = row["url"].rstrip("/").split("/")[-1]
-        doc = {
-            "page_content": format_content(row),
-            "metadata": {
+        doc = Document(
+            page_content=format_content(row),
+            metadata={
                 "source": row["url"],
                 "specs": row["specs"],
                 "documents": row["documents"],
@@ -82,7 +82,7 @@ def create_documents(df: pd.DataFrame) -> List[Dict]:
                 "scrape_timestamp": row["scrape_timestamp"],
                 "content_type": "dog_breed_profile"
             }
-        }
+        )
         documents.append(doc)
     logging.info(f"Created {len(documents)} documents.")
     return documents
