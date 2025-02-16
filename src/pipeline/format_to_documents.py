@@ -6,6 +6,7 @@ from typing import List, Dict, Any
 import pandas as pd
 from pydantic import BaseModel
 from langchain.schema import Document
+import json
 
 # Import configuration defaults.
 from src.config import config
@@ -87,9 +88,16 @@ def create_documents(df: pd.DataFrame) -> List[Document]:
     logging.info(f"Created {len(documents)} documents.")
     return documents
 
-def save_documents(documents: List[Dict], filename: str):
+def save_documents(documents: list[Document], filename: str):
     try:
-        df = pd.DataFrame(documents)
+        docs = []
+        for doc in documents:
+            # Convert the Document to a dictionary.
+            doc_dict = doc.dict()
+            # Convert the metadata dict to a JSON string.
+            doc_dict["metadata"] = json.dumps(doc_dict["metadata"])
+            docs.append(doc_dict)
+        df = pd.DataFrame(docs)
         df.to_parquet(filename, engine="pyarrow")
         logging.info(f"Documents saved to {filename}")
     except Exception as e:
