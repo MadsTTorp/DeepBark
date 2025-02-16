@@ -1,7 +1,8 @@
 .env
 __pycache__
-# *.pkl
-# *.index
+*.pkl
+*.index
 *.bak
 *.flake
 *.wdm
+*.parquet
