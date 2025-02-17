@@ -15,6 +15,7 @@ load_dotenv(find_dotenv())
 # Import configuration defaults.
 from src.config import config
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Create a FAISS vector search index from document data."
@@ -127,6 +128,7 @@ def main():
         level=logging.INFO, 
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
+    logging.getLogger("openai").setLevel(logging.WARNING)
     documents = load_documents(input_filepath)
     chunks = chunk_documents(
         documents, 
