@@ -14,7 +14,6 @@ load_dotenv(find_dotenv())
 
 # Import configuration defaults.
 from src.config import config
-load_dotenv()
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -78,7 +77,8 @@ def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):
     return all_chunks
 
 def create_index(chunks):
-    openai_embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+    openai_embeddings = OpenAIEmbeddings(model="text-embedding-3-large", 
+    openai_api_key=os.getenv("OPENAI_API_KEY"))
 
     # Create a list of embeddings from the document content
     doc_embeddings = [
