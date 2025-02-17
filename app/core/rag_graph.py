@@ -14,8 +14,8 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 # Load the FAISS index and documents
-index = faiss.read_index("app/vector_storage/vector_store.index")
-with open("app/vector_storage/documents.pkl", "rb") as f:
+index = faiss.read_index("app/vector_storage/faiss_index.index")
+with open("app/vector_storage/chunked_documents.pkl", "rb") as f:
     documents = pickle.load(f)
 
 # Initialize embeddings
@@ -38,18 +38,18 @@ def retrieve(query: str):
     distances, indices = index.search(query_embedding, k=3)
     retrieved_docs = []
     for distance, idx in zip(distances[0], indices[0]):
-        if distance < similarity_threshold:
-            retrieved_docs.append(documents[idx])
-
+        if distance < 1.0:
+            doc = documents[idx]
+            # Convert to a dictionary format similar to LangChain's Document class
+            retrieved_docs.append({
+                "metadata": doc.metadata,
+                "page_content": doc.page_content
+            })
     serialized = "\n\n".join(
-        (f"Source: {doc.metadata}\n" f"Content: {doc.page_content}")
+        (f"Source: {doc['metadata']['source']}\n" f"Content: {doc['page_content']}")
         for doc in retrieved_docs
     )
     return serialized, retrieved_docs
-
-
-# Executre the retrieval tool
-tools = ToolNode([retrieve])
 
 
 # Generate an AIMessage that may include a tool-call to be sent.
@@ -59,6 +59,10 @@ def query_or_respond(state: MessagesState):
     response = llm_with_tools.invoke(state["messages"])
     # MessagesState appends messages to state instead of overwriting
     return {"messages": [response]}
+
+
+# Executre the retrieval tool
+tools = ToolNode([retrieve])
 
 
 # Generate a response using the retrieved content.
@@ -106,7 +110,5 @@ graph_builder.add_conditional_edges(
 # add edges to the graph that connect the nodes
 graph_builder.add_edge("tools", "generate")
 graph_builder.add_edge("generate", END)
-# compile the graph
-graph = graph_builder.compile()
 # initiate the memory saver to save the state of the graph
 graph = graph_builder.compile(checkpointer=memory)

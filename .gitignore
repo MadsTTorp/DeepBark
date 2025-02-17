@@ -1,6 +1,7 @@
 .env
 __pycache__
 *.pkl
+*.pickle
 *.index
 *.bak
 *.flake
