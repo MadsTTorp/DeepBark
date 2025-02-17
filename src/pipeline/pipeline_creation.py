@@ -3,7 +3,8 @@ import argparse
 import subprocess
 import yaml
 from prefect import flow, task, get_run_logger
-
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 # Import configuration defaults.
 from src.config import config
 
@@ -43,14 +44,15 @@ def run_document_creation(scrape_output_path: str, scrape_output_file: str,
 
 @task
 def run_index_creation(document_output_path: str, document_output_file: str,
-                       index_output_path: str):
+                       index_output_path: str, openai_api_key: str):
     logger = get_run_logger()
     cmd = [
         "python",
         "src/pipeline/generate_index.py",
         "--input-path", document_output_path,
         "--input-file", document_output_file,
-        "--output-path", index_output_path
+        "--output-path", index_output_path,
+        "--openai-api-key", openai_api_key
     ]
     logger.info(f"Running index creation script: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
@@ -61,14 +63,20 @@ def dog_breed_pipeline(scrape_output_path: str,
                        scrape_output_file: str,
                        document_output_path: str,
                        document_output_file: str,
-                       index_output_path: str):
+                       index_output_path: str,
+                       open_ai_key: str):
     os.makedirs(scrape_output_path, exist_ok=True)
     os.makedirs(document_output_path, exist_ok=True)
     os.makedirs(index_output_path, exist_ok=True)
     run_scraping(scrape_output_path, scrape_output_file)
     run_document_creation(scrape_output_path, scrape_output_file,
                           document_output_path, document_output_file)
-    run_index_creation(document_output_path, document_output_file, index_output_path)
+    run_index_creation(
+        document_output_path, 
+        document_output_file, 
+        index_output_path,
+        open_ai_key
+        )
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -92,6 +100,9 @@ def main():
     document_output_path = config.get("document_output_path", config.get("output_path", "output"))
     document_output_file = config.get("document_output_file", "breed_documents.parquet")
     index_output_path = config.get("index_output_path", config.get("output_path", "output"))
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if not openai_api_key:
+        raise ValueError("OPENAI_API_KEY environment variable must be set.")
 
     print("Using configuration:")
     print(f"  Scrape output path:   {scrape_output_path}")
@@ -100,11 +111,14 @@ def main():
     print(f"  Document output file: {document_output_file}")
     print(f"  Index output path:    {index_output_path}")
 
-    dog_breed_pipeline(scrape_output_path,
-                       scrape_output_file,
-                       document_output_path,
-                       document_output_file,
-                       index_output_path)
+    dog_breed_pipeline(
+        scrape_output_path,
+        scrape_output_file,
+        document_output_path,
+        document_output_file,
+        index_output_path,
+        openai_api_key
+        )
 
 if __name__ == "__main__":
     main()
