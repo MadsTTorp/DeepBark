@@ -7,19 +7,14 @@ import numpy as np
 import pickle
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import faiss
+from langchain_openai import OpenAIEmbeddings
 from langchain.schema import Document
-from sentence_transformers import SentenceTransformer
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
 # Import configuration defaults.
 from src.config import config
-
-# Define a custom cache directory for storing the model.
-MODEL_CACHE_DIR = os.path.expanduser("~/.cache/sentence_transformers/")
-os.makedirs(MODEL_CACHE_DIR, exist_ok=True)
-
-MODEL_NAME = "all-MiniLM-L6-v2"
-logging.info(f"Loading model '{MODEL_NAME}' from cache directory: {MODEL_CACHE_DIR}")
-model = SentenceTransformer(MODEL_NAME, cache_folder=MODEL_CACHE_DIR)
+load_dotenv()
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -83,14 +78,24 @@ def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):
     return all_chunks
 
 def create_index(chunks):
-    embeddings = [model.encode(chunk['page_content'], convert_to_numpy=True) for chunk in chunks]
-    embeddings_array = np.vstack(embeddings)
-    
+    openai_embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
+
+    # Create a list of embeddings from the document content
+    doc_embeddings = [
+        openai_embeddings.embed_query(chunk['page_content']) for chunk in chunks
+    ]
+
+    # Convert the list to a numpy array with type float32
+    embeddings_array = np.array(doc_embeddings, dtype="float32")
+
+    # Get the embedding dimension and create the FAISS index
     dimension = embeddings_array.shape[1]
     index = faiss.IndexFlatL2(dimension)
     index.add(embeddings_array)
     
-    logging.info(f"FAISS index created with {index.ntotal} vectors (dimension {dimension}).")
+    logging.info(
+        f"FAISS index created with {index.ntotal} vectors (dimension {dimension})."
+        )
     return index
 
 def save_index(index, output_index_filepath):
