@@ -1,4 +1,4 @@
 output_path: output
 scrape_output_file: scraped_breeds.parquet
-document_output_file: documents.pickle
+document_output_file: raw_documents.pickle
 index_output_path: output

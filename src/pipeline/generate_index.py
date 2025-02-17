@@ -70,14 +70,7 @@ def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):
         chunk_overlap=chunk_overlap,
         add_start_index=True,
     )
-    all_chunks = []
-    for doc in documents:
-        chunks = text_splitter.split_text(doc.page_content)
-        for chunk in chunks:
-            all_chunks.append({
-                "page_content": chunk,
-                "metadata": doc.metadata
-            })
+    all_chunks = text_splitter.split_documents(documents)
     logging.info(f"Created {len(all_chunks)} chunks from documents.")
     return all_chunks
 
@@ -87,7 +80,7 @@ def create_index(chunks, openai_api_key=None):
 
     # Create a list of embeddings from the document content
     doc_embeddings = [
-        openai_embeddings.embed_query(chunk['page_content']) for chunk in chunks
+        openai_embeddings.embed_query(doc.page_content) for doc in chunks
     ]
 
     # Convert the list to a numpy array with type float32
