@@ -15,7 +15,10 @@ from webdriver_manager.firefox import GeckoDriverManager
 
 # Import configuration defaults.
 from src.config import config
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
+print(os.getenv('OPENAI_API_KEY'))
 # Constants for the DKK website
 BASE_URL = "https://www.dkk.dk/race"
 RACE_SELECT_CLASS = "lex-custom-select font-semibold pl-2 md: p-1"
