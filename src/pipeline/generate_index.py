@@ -47,6 +47,10 @@ def parse_args():
         "--model-name", type=str, default="all-MiniLM-L6-v2",
         help="SentenceTransformer model name for embedding generation."
     )
+    parser.add_argument(
+        "--openai-api-key", type=str, default=os.getenv("OPENAI_API_KEY"),
+        help="OpenAI API key for text embeddings."
+    )
     return parser.parse_args()
 
 def load_documents(filename: str) -> list[Document]:
@@ -76,9 +80,9 @@ def chunk_documents(documents, chunk_size=1000, chunk_overlap=200):
     logging.info(f"Created {len(all_chunks)} chunks from documents.")
     return all_chunks
 
-def create_index(chunks):
+def create_index(chunks, openai_api_key=None):
     openai_embeddings = OpenAIEmbeddings(model="text-embedding-3-large", 
-    openai_api_key=os.getenv("OPENAI_API_KEY"))
+    openai_api_key=openai_api_key)
 
     # Create a list of embeddings from the document content
     doc_embeddings = [
@@ -129,7 +133,7 @@ def main():
         chunk_size=args.chunk_size, 
         chunk_overlap=args.chunk_overlap
     )
-    index = create_index(chunks)
+    index = create_index(chunks, openai_api_key=args.openai_api_key)
     index_filepath = os.path.join(args.output_path, config.INDEX_FILE)
     chunks_filepath = os.path.join(args.output_path, config.CHUNKS_FILE)
     save_index(index, index_filepath)

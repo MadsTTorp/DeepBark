@@ -3,7 +3,8 @@ import argparse
 import subprocess
 import yaml
 from prefect import flow, task, get_run_logger
-
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 # Import configuration defaults.
 from src.config import config
 
@@ -43,14 +44,15 @@ def run_document_creation(scrape_output_path: str, scrape_output_file: str,
 
 @task
 def run_index_creation(document_output_path: str, document_output_file: str,
-                       index_output_path: str):
+                       index_output_path: str, openai_api_key: str):
     logger = get_run_logger()
     cmd = [
         "python",
         "src/pipeline/generate_index.py",
         "--input-path", document_output_path,
         "--input-file", document_output_file,
-        "--output-path", index_output_path
+        "--output-path", index_output_path,
+        "--openai-api-key", openai_api_key
     ]
     logger.info(f"Running index creation script: {' '.join(cmd)}")
     subprocess.run(cmd, check=True)
