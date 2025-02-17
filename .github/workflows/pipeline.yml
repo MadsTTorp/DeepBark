@@ -30,7 +30,11 @@ jobs:
         run: docker build -t my-project:latest .
 
       - name: Run Pipeline in Container
-        run: docker run --rm -v "${{ github.workspace }}/output:/app/output" my-project:latest
+        run: |
+          docker run --rm \
+            -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+            -v "${{ github.workspace }}/output:/app/output" \
+            my-project:latest
 
       - name: Package Artifacts
         run: python src/utils/package_artifacts.py --output-path output --archive-name release_artifacts_${{ github.run_number }}.zip
