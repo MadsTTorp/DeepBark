@@ -1,15 +1,14 @@
-# DeepBark
-
-<!-- DeepBark Logo in Top Right -->
-<p align="right">
-  <img src="doc/Deepbark-logo.png" alt="DeepBark Logo" style="max-width: 200px;">
-</p>
-
-DeepBark is a Retrieval-Augmented Generation (RAG) solution designed to assist dog owners by providing accurate and helpful information on dog care—from feeding and training to breed-specific guidance. Leveraging advanced natural language processing techniques, DeepBark retrieves and generates concise answers based on a curated collection of articles and provides direct links to the original sources.
-
-### Purpose
-
-The purpose of this project is to build a RAG-solution. The knowledge base is based on public available documents and the use of a RAG-service might not be as relevant as for "private documents". 
+<div style="display: flex; align-items: flex-start;">
+  <div style="flex: 1;">
+    <h1>DeepBark</h1>
+    <p>DeepBark is a Retrieval-Augmented Generation (RAG) solution designed to assist dog owners by providing accurate and helpful information on dog care—from feeding and training to breed-specific guidance. Leveraging advanced natural language processing techniques, DeepBark retrieves and generates concise answers based on a curated collection of articles and provides direct links to the original sources.</p>
+    <h3>Purpose</h3>
+    <p>The purpose of this project is to build a RAG-solution. The knowledge base is based on publicly available documents and the use of a RAG-service might not be as relevant as for "private documents".</p>
+  </div>
+  <div style="flex: 0 0 auto; margin-left: 20px;">
+    <img src="doc/Deepbark-logo.png" alt="DeepBark Logo" style="max-width: 200px;">
+  </div>
+</div>
 
 ## Table of Contents
 
