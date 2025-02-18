@@ -1,72 +1,86 @@
-# BarkBot
+<div style="display: flex; align-items: center; justify-content: space-between;">
+  <div style="flex: 1; padding-right: 20px;">
+    <h1>DeepBark</h1>
+    <p>
+      DeepBark is a Retrieval-Augmented Generation (RAG) solution designed to assist dog owners by providing accurate and helpful information on dog care—from feeding and training to breed-specific guidance. Leveraging advanced natural language processing techniques, DeepBark retrieves and generates concise answers based on a curated collection of articles and provides direct links to the original sources.
+    </p>
+    <h3>Purpose</h3>
+    <p>
+      The purpose of this project is to build a RAG-solution. The knowledge base is based on publicly available documents and the use of a RAG-service might not be as relevant as for "private documents".
+    </p>
+  </div>
+  <div style="flex-shrink: 0;">
+    <img src="doc/Deepbark-logo.png" alt="DeepBark Logo" style="max-width: 200px;">
+  </div>
+</div>
 
-Barkbot is a Retrieval-Augmented Generation (RAG) solution designed to assist dog owners by providing accurate and helpful information based on several articles. The application leverages advanced natural language processing techniques to answer questions and provide relevant sources.
+
 
 
 ## Table of Contents
 
-- Introduction
-- Features
-- Installation
-- Usage
-- Project Structure
-- Contributing
-- License
+- [Introduction](#introduction)
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
 
 ## Introduction
 
-Barkbot is a chatbot application that helps dog owners find answers to their questions about dog care, feeding, training, and more. The application uses a RAG model to retrieve relevant information from a collection of articles and generate concise answers. The sources of the information are also provided as links for further reading.
+DeepBark is an innovative chatbot application that helps dog owners quickly access expert advice on various topics such as dog nutrition, training tips, and breed information. By combining a powerful retrieval system with a language generation model, DeepBark delivers precise answers along with source references for further reading. The interface is designed to be clean, modern, and user-friendly.
 
 ## Features
 
-- **Accurate Answers**: Provides precise answers to user questions based on a collection of articles.
-- **Source Links**: Includes links to the sources of the information for further reading.
-- **User-Friendly Interface**: Simple and intuitive chat interface for easy interaction.
+- **Accurate Answers:** Delivers precise responses by retrieving information from multiple trusted sources.
+- **Source Links:** Provides clickable links to the original articles for in-depth reading.
+- **User-Friendly Interface:** Modern and intuitive design for seamless interaction.
+- **Responsive Design:** Built to work on various devices and screen sizes.
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.11.9
-- Node.js (for frontend development)
-- Conda (for managing the environment)
+- **Python 3.11.9**
+- **Node.js** (for frontend development)
+- **Conda** (for environment management)
 
 ### Setup
 
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/woof-wisdom.git
-    cd woof-wisdom
-    ```
+1. **Clone the Repository:**
+   ```sh
+   git clone https://github.com/MadsTTorp/DeepBark.git
+   cd DeepBark
+   ```
 
-2. Create and activate the Conda environment:
-    ```sh
+2. **Create and Activate the Conda Environment**
+   ```sh
     conda env create -f environment.yml
-    conda activate woofwisdom-gpt
-    ```
+    conda activate deepbark-gpt
+   ```
 
-3. Install the required Python packages:
-    ```sh
+3. **Install the Required Python Packages:**
+   ```sh
     pip install -r requirements.txt
-    ```
+   ```
 
-4. Run the application:
-    ```sh
+4. **Run the Application:**
+   ```sh
     uvicorn app.main:app --reload
-    ```
-
-## Usage
-
-1. Open your web browser and navigate to `http://127.0.0.1:8000`.
-2. Type your question in the input box and press Enter.
-3. The chatbot will display the answer along with links to the sources of the information.
+   ```
 
 ![UI Interface](doc/UI-interface.png)
 
-## Contributing
+### Project structure
 
-Contributions are welcome! Please read the contributing guidelines for more information.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
+```
+DeepBark/
+├── app/
+│   ├── main.py         # FastAPI application entry point
+│   ├── api/            # API endpoints and logic
+│   └── frontend/       # HTML/CSS/JS for the frontend
+├── assets/             # Images and static assets (backgrounds, logos, etc.)
+├── doc/                # Documentation and images (Deepbark-logo.png, UI-interface.png)
+├── environment.yml     # Conda environment file
+├── requirements.txt    # Python dependencies
+└── README.md           # This file
+```

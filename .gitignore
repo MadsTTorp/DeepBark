@@ -7,3 +7,5 @@ __pycache__
 *.flake
 *.wdm
 *.parquet
+*.jpg
+*.png
