@@ -1,4 +1,4 @@
-<table style="border-collapse: collapse; border: none;">
+<table border="0" cellspacing="0" cellpadding="0" style="border-collapse: collapse; border: none !important;">
   <tr>
     <td style="border: none; vertical-align: top;">
       <h1>DeepBark</h1>
@@ -11,10 +11,11 @@
       </p>
     </td>
     <td style="border: none; vertical-align: top;" align="right">
-      <img src="doc/Deepbark-logo.png" alt="DeepBark Logo" width="1200">
+      <img src="doc/Deepbark-logo.png" alt="DeepBark Logo" width="200">
     </td>
   </tr>
 </table>
+
 
 
 ## Table of Contents
