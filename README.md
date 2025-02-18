@@ -11,7 +11,7 @@
       </p>
     </td>
     <td align="right">
-      <img src="doc/Deepbark-logo.png" alt="DeepBark Logo" width="200">
+      <img src="doc/Deepbark-logo.png" alt="DeepBark Logo" width="600">
     </td>
   </tr>
 </table>
