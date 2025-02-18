@@ -1,9 +1,9 @@
+# DeepBark
+
 <!-- DeepBark Logo in Top Right -->
 <p align="right">
   <img src="doc/Deepbark-logo.png" alt="DeepBark Logo" style="max-width: 200px;">
 </p>
-
-# DeepBark
 
 DeepBark is a Retrieval-Augmented Generation (RAG) solution designed to assist dog owners by providing accurate and helpful information on dog care—from feeding and training to breed-specific guidance. Leveraging advanced natural language processing techniques, DeepBark retrieves and generates concise answers based on a curated collection of articles and provides direct links to the original sources.
 
