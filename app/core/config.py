@@ -15,7 +15,7 @@ def get_prompt(docs_context):
         "Brug udelukkende følgende stykker kontekst til at besvare "
         "spørgsmålet. Svar med maksimalt tre sætninger og hold svaret så "
         "kortfattet men præcist som muligt og velformuleret. Vær høflig "
-        "i dit svar.\n\n"
+        "i dit svar. Angiv altid dit svar i 'markdown' format.\n\n"
         f"{docs_context}"
     )
     return prompt_template
