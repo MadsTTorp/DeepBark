@@ -9,6 +9,8 @@ langchain-openai
 langchain-text-splitters
 langchain-community
 langgraph
+langgraph_prebuilt
+langgraph_checkpoint
 fastapi
 pydantic
 uvicorn
@@ -18,3 +20,4 @@ selenium
 webdriver_manager
 prefect
 sentence_transformers
+trafilatura
